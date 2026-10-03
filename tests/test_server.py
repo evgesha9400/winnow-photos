@@ -1,5 +1,5 @@
 """
-tests/test_server.py - Integration tests for Photo Curation Studio server endpoints with arbitrary depth clusters.
+tests/test_server.py - Integration tests for Winnow Photos server endpoints with arbitrary depth clusters.
 """
 
 import os

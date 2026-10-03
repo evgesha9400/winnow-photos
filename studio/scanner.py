@@ -1,5 +1,5 @@
 """
-studio/scanner.py - Universal Directory & Media Scanner for Photo Curation Studio.
+studio/scanner.py - Universal Directory & Media Scanner for Winnow Photos.
 Scans any folder on the machine, extracts directory hierarchy into Level 1 (Tier 1)
 and Level 2 (Tier 2) clusters, extracts EXIF dates/cameras/GPS, and merges with existing state.
 """
@@ -22,7 +22,7 @@ except ImportError:
 
 from studio.cluster_tree import ClusterTree
 
-logger = logging.getLogger("curation_studio.scanner")
+logger = logging.getLogger("winnow_photos.scanner")
 
 IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.heic', '.webp', '.bmp', '.tiff', '.gif'}
 VIDEO_EXTENSIONS = {'.mp4', '.mov', '.m4v', '.webm', '.avi', '.mkv'}

@@ -1,5 +1,5 @@
 {
-  "root_dir": "/Users/evgesha/projects/03-experiments/photo-curation-studio/tests/sample_gallery",
+  "root_dir": "/Users/evgesha/projects/03-experiments/winnow-photos/tests/sample_gallery",
   "tier1_clusters": [
     "Architecture",
     "Portraits",
@@ -19,7 +19,7 @@
   "items": {
     "unassigned_pic.jpg": {
       "filename": "unassigned_pic.jpg",
-      "disk_path": "/Users/evgesha/projects/03-experiments/photo-curation-studio/tests/sample_gallery/unassigned_pic.jpg",
+      "disk_path": "/Users/evgesha/projects/03-experiments/winnow-photos/tests/sample_gallery/unassigned_pic.jpg",
       "date": "2026:10:03",
       "session_date": "2026:10:03",
       "camera": "Unknown",
@@ -37,7 +37,7 @@
     },
     "modern.jpg": {
       "filename": "modern.jpg",
-      "disk_path": "/Users/evgesha/projects/03-experiments/photo-curation-studio/tests/sample_gallery/Architecture/modern.jpg",
+      "disk_path": "/Users/evgesha/projects/03-experiments/winnow-photos/tests/sample_gallery/Architecture/modern.jpg",
       "date": "2026:10:03",
       "session_date": "2026:10:03",
       "camera": "Unknown",
@@ -55,7 +55,7 @@
     },
     "headshot.jpg": {
       "filename": "headshot.jpg",
-      "disk_path": "/Users/evgesha/projects/03-experiments/photo-curation-studio/tests/sample_gallery/Portraits/Studio/headshot.jpg",
+      "disk_path": "/Users/evgesha/projects/03-experiments/winnow-photos/tests/sample_gallery/Portraits/Studio/headshot.jpg",
       "date": "2026:10:03",
       "session_date": "2026:10:03",
       "camera": "Unknown",
@@ -73,7 +73,7 @@
     },
     "tower_bridge.jpg": {
       "filename": "tower_bridge.jpg",
-      "disk_path": "/Users/evgesha/projects/03-experiments/photo-curation-studio/tests/sample_gallery/Architecture/Bridges/tower_bridge.jpg",
+      "disk_path": "/Users/evgesha/projects/03-experiments/winnow-photos/tests/sample_gallery/Architecture/Bridges/tower_bridge.jpg",
       "date": "2026:10:03",
       "session_date": "2026:10:03",
       "camera": "Unknown",
@@ -91,7 +91,7 @@
     },
     "brooklyn_bridge.jpg": {
       "filename": "brooklyn_bridge.jpg",
-      "disk_path": "/Users/evgesha/projects/03-experiments/photo-curation-studio/tests/sample_gallery/Architecture/Bridges/brooklyn_bridge.jpg",
+      "disk_path": "/Users/evgesha/projects/03-experiments/winnow-photos/tests/sample_gallery/Architecture/Bridges/brooklyn_bridge.jpg",
       "date": "2026:10:03",
       "session_date": "2026:10:03",
       "camera": "Unknown",

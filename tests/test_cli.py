@@ -1,5 +1,5 @@
 """
-tests/test_cli.py - Tests for the photo-studio CLI entrypoint and argument parsing.
+tests/test_cli.py - Tests for the winnow-photos CLI entrypoint and argument parsing.
 """
 
 import sys
@@ -25,7 +25,7 @@ class TestCLIEntrypoint(unittest.TestCase):
         orig_cwd = os.getcwd()
         try:
             os.chdir(self.dir_path)
-            with patch.object(sys, "argv", ["photo-studio"]):
+            with patch.object(sys, "argv", ["winnow-photos"]):
                 main.main()
                 mock_run_server.assert_called_once_with(
                     port=8766,
@@ -40,7 +40,7 @@ class TestCLIEntrypoint(unittest.TestCase):
     def test_explicit_folder_argument(self, mock_run_server):
         sub = self.dir_path / "subfolder"
         sub.mkdir()
-        with patch.object(sys, "argv", ["photo-studio", str(sub), "--port", "9123", "--scan", "--open"]):
+        with patch.object(sys, "argv", ["winnow-photos", str(sub), "--port", "9123", "--scan", "--open"]):
             main.main()
             mock_run_server.assert_called_once_with(
                 port=9123,
@@ -51,7 +51,7 @@ class TestCLIEntrypoint(unittest.TestCase):
 
     def test_nonexistent_folder_exits(self):
         non_existent = str(self.dir_path / "does_not_exist")
-        with patch.object(sys, "argv", ["photo-studio", non_existent]):
+        with patch.object(sys, "argv", ["winnow-photos", non_existent]):
             with self.assertRaises(SystemExit) as ctx:
                 main.main()
             self.assertEqual(ctx.exception.code, 1)

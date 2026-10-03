@@ -1,5 +1,5 @@
 """
-studio/server.py - HTTP Server and REST API for Photo Curation Studio.
+studio/server.py - HTTP Server and REST API for Winnow Photos.
 Zero-dependency, high-performance standard library server supporting streaming,
 range requests, folder switching, cluster editing, and undo/redo.
 """
@@ -22,7 +22,7 @@ from typing import Optional, Dict, Any, List
 
 from studio.state import LibraryManager, LOCK, atomic_write_json
 
-logger = logging.getLogger("curation_studio.server")
+logger = logging.getLogger("winnow_photos.server")
 
 STATIC_DIR = Path(__file__).parent / "static"
 INDEX_FILE = STATIC_DIR / "index.html"
@@ -730,7 +730,7 @@ def run_server(port: int = 8766, initial_folder: Optional[str] = None, host: str
             sys.exit(1)
         raise
     url = f"http://{host}:{port}"
-    print(f"Photo Curation Studio running at {url}")
+    print(f"Winnow Photos running at {url}")
     if manager.active_folder:
         print(f"Active library: {manager.active_folder}")
     else:

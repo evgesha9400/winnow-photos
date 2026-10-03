@@ -1,26 +1,29 @@
-# Photo Curation Studio
+# Winnow Photos
 
-Universal media curation studio and library manager.
-Designed for rapid sorting, burst deduplication, and hierarchical classification of local photo and video archives.
+Fast, keyboard-driven media curation and burst triage for local photo archives.
+Designed for rapid sorting, burst deduplication, and hierarchical classification with zero cloud lock-in.
 
 ---
 
 ## Quick Start
 
-### 1. Launch with Any Folder
+### 1. Launch from Any Directory
 
 ```bash
-# Run against any folder on your computer
-python3 main.py /path/to/my/photos
+# Curate the current working directory
+winnow-photos
 
-# Or run with custom port
-python3 main.py ~/Pictures --port 8766
+# Curate any specific folder
+winnow-photos /path/to/my/photos
 
-# Or force clean rescan
-python3 main.py ~/Pictures --scan
+# Automatically open in your default browser
+winnow-photos --open
 
-# Or launch studio and choose a folder from the web UI
-python3 main.py
+# Run on a custom port
+winnow-photos ~/Pictures --port 8766
+
+# Force a clean rescan
+winnow-photos ~/Pictures --scan
 ```
 
 Open your browser to `http://127.0.0.1:8766`.
@@ -67,8 +70,8 @@ All keyboard hotkeys are guarded: typing inside text inputs, search boxes, or mo
 ## Project Structure
 
 ```
-photo-curation-studio/
-├── main.py                     # CLI entrypoint
+winnow-photos/
+├── main.py                     # CLI entrypoint (winnow-photos)
 ├── studio/
 │   ├── cluster_tree.py         # N-level recursive ClusterTree and ClusterNode model
 │   ├── scanner.py              # Directory hierarchy & EXIF parser
@@ -77,6 +80,7 @@ photo-curation-studio/
 │   └── static/
 │       └── index.html          # Single-page web studio interface
 └── tests/
+    ├── test_cli.py             # CLI entrypoint and argument tests
     ├── test_cluster_tree.py    # Recursive tree, cycle, and rename tests
     ├── test_scanner.py         # Directory scan and rescan preservation tests
     ├── test_server.py          # API endpoints, security, and thumbnail tests

@@ -1,5 +1,5 @@
 """
-Photo Curation Studio - Two-Tier Universal Media Curation and Library Manager.
+Winnow Photos - Fast Keyboard-Driven Media Curation and Library Manager.
 """
 
 __version__ = "1.0.0"

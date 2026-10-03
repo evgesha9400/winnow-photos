@@ -1,8 +1,8 @@
-# Photo Curation Studio - Architecture and Governance
+# Winnow Photos - Architecture and Governance
 
 ## Purpose
 
-Photo Curation Studio is a high-speed, keyboard-driven, two-tier media categorization and library curation system.
+Winnow Photos is a high-speed, keyboard-driven, two-tier media categorization and library curation system.
 It runs locally on any folder on the machine with zero external service dependencies.
 
 ## Key Capabilities
@@ -26,24 +26,29 @@ It runs locally on any folder on the machine with zero external service dependen
    - `Cmd+Z` / `Ctrl+Z` reverses any single or batch action.
 6. **Folder Switcher & Ingest:**
    - Select any folder on the PC directly via CLI or web UI.
-   - Remembers recent libraries in `~/.photo_curation_studio/config.json`.
+   - Remembers recent libraries in `~/.winnow_photos/config.json`.
 7. **Physical Disk Synchronization:**
    - Optionally moves organized files into `<root>/<Tier1>/<Tier2>/<file>` with full JSON rollback manifests.
 
 ## Repository Layout
 
 ```
-photo-curation-studio/
-├── main.py                     # CLI entrypoint (python3 main.py [folder] [--port 8766])
+winnow-photos/
+├── main.py                     # CLI entrypoint (winnow-photos [folder] [--port 8766])
 ├── studio/
 │   ├── __init__.py             # Package marker
+│   ├── cluster_tree.py         # N-level recursive cluster tree model
 │   ├── scanner.py              # Recursive media scanner, EXIF parser, directory hierarchy extractor
 │   ├── state.py                # LibraryManager, state persistence, undo stack, payload computation
-│   ├── server.py               # HTTP server and REST API routes
+│   ├── server.py               # HTTP server, REST API routes, /thumb/ thumbnail pipeline
 │   └── static/
 │       └── index.html          # Single-page studio interface
 ├── tests/
-│   └── test_scanner.py         # Unit tests for hierarchy and EXIF extraction
+│   ├── test_cli.py             # CLI entrypoint tests
+│   ├── test_cluster_tree.py    # Cluster tree model tests
+│   ├── test_scanner.py         # Hierarchy and EXIF extraction tests
+│   ├── test_server.py          # API endpoints, security, and thumbnail tests
+│   └── test_state.py           # State management and atomic write tests
 ├── .gitignore
 ├── AGENTS.md
 └── README.md

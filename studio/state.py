@@ -13,14 +13,18 @@ from typing import Dict, Any, List, Optional
 from studio.scanner import scan_directory
 from studio.cluster_tree import ClusterTree, ClusterNode
 
-logger = logging.getLogger("curation_studio.state")
+logger = logging.getLogger("winnow_photos.state")
 LOCK = threading.RLock()
 
 def get_config_dir() -> Path:
     env = os.environ.get("CURATION_CONFIG_DIR")
     if env:
         return Path(env).resolve()
-    return (Path.home() / ".photo_curation_studio").resolve()
+    new_dir = (Path.home() / ".winnow_photos").resolve()
+    old_dir = (Path.home() / ".photo_curation_studio").resolve()
+    if not new_dir.exists() and old_dir.exists():
+        return old_dir
+    return new_dir
 
 
 def get_config_file() -> Path:

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-main.py - Entry point for Photo Curation Studio.
+main.py - Entry point for Winnow Photos.
 Run with any folder on your machine:
-    photo-studio                      # curates current directory
-    photo-studio /path/to/photos
-    photo-studio ~/Pictures --port 8766
-    photo-studio --scan
+    winnow-photos                     # curates current directory
+    winnow-photos /path/to/photos
+    winnow-photos ~/Pictures --port 8766
+    winnow-photos --scan
 """
 
 import sys
@@ -22,7 +22,7 @@ from studio.server import run_server
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Photo Curation Studio - Universal Media Curation and Library Manager"
+        description="Winnow Photos - Fast Keyboard-Driven Media Curation and Library Manager"
     )
     parser.add_argument(
         "folder",
