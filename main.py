@@ -46,11 +46,6 @@ def main():
         action="store_true",
         help="Open the web studio interface in your default browser."
     )
-    parser.add_argument(
-        "--flat",
-        action="store_true",
-        help="Start with a flat library where all photos are in Review & Unassigned with no imported folder clusters."
-    )
 
     args = parser.parse_args()
 
@@ -62,7 +57,7 @@ def main():
         print(f"Error: Path '{target_folder}' is not a directory.", file=sys.stderr)
         sys.exit(1)
 
-    run_server(port=args.port, initial_folder=target_folder, force_rescan=args.scan, open_browser=args.open, flat=args.flat)
+    run_server(port=args.port, initial_folder=target_folder, force_rescan=args.scan, open_browser=args.open)
 
 
 if __name__ == "__main__":

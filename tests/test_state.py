@@ -185,29 +185,7 @@ class TestLibraryManager(unittest.TestCase):
 
         # Clear all
         cleared = mgr.clear_recent_libraries()
-    def test_reset_all_clusters(self):
-        mgr = LibraryManager(self.root)
-        self.assertEqual(len(mgr.cluster_tree.root.children), 3) # Review, Trash, Travel
-        self.assertEqual(mgr.state['items']["beach.jpg"]['cluster_path'], ["Travel", "Spain", "Costa Brava"])
-
-        count = mgr.reset_all_clusters()
-        self.assertEqual(count, 2)
-        # Tree must now have only system clusters
-        names = mgr.cluster_tree.get_children_names([])
-        self.assertEqual(names, ["Review & Unassigned", "Trash / To Delete"])
-        # All items must be in Review & Unassigned
-        for it in mgr.state['items'].values():
-            self.assertEqual(it['cluster_path'], ["Review & Unassigned"])
-            self.assertEqual(it['reviewed_depth'], 0)
-            self.assertEqual(it['status'], 'unassigned')
-            self.assertTrue(it['need_review'])
-
-    def test_open_folder_flat(self):
-        mgr = LibraryManager(self.root, flat=True)
-        # Tree must only have system clusters
-        names = mgr.cluster_tree.get_children_names([])
-        self.assertEqual(names, ["Review & Unassigned", "Trash / To Delete"])
-        self.assertEqual(mgr.state['items']["beach.jpg"]['cluster_path'], ["Review & Unassigned"])
+        self.assertEqual(cleared, [])
 
 
 if __name__ == '__main__':

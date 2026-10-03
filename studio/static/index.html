@@ -1488,8 +1488,8 @@
 
       <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; background: #0d1117; padding: 10px; border-radius: 6px; border: 1px solid var(--border);">
         <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-bright); cursor: pointer;">
-          <input type="checkbox" id="chkExtractHierarchy" checked>
-          <span>Import existing folder structure into clusters</span>
+          <input type="checkbox" id="chkExtractHierarchy" checked disabled>
+          <span>Parse folder hierarchy into Level 1 & Level 2 clusters</span>
         </label>
         <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text); cursor: pointer;">
           <input type="checkbox" id="chkForceRescan">
@@ -1497,8 +1497,7 @@
         </label>
       </div>
 
-      <div class="modal-actions" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
-        <button type="button" class="btn-danger" style="margin-right: auto; padding: 6px 12px; font-size: 0.78rem;" onclick="resetAllClustersPrompt()" title="Clear all clusters and move all photos to Review & Unassigned">Reset All Clusters</button>
+      <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 8px;">
         <button class="btn-secondary" onclick="closeFolderModal()">Cancel</button>
         <button class="btn-primary" id="btnSubmitFolderOpen" onclick="submitOpenFolder()">Open & Scan Library</button>
       </div>
@@ -1761,20 +1760,17 @@
       }
 
       const forceRescan = document.getElementById('chkForceRescan').checked;
-      const extractHierarchy = document.getElementById('chkExtractHierarchy').checked;
-      const flat = !extractHierarchy;
-
       const submitBtn = document.getElementById('btnSubmitFolderOpen');
       const originalBtnText = submitBtn.innerText;
       submitBtn.disabled = true;
       submitBtn.innerText = 'Scanning & Extracting...';
 
       try {
-        showToast('Scanning folder and updating library...');
+        showToast('Scanning folder and extracting clusters...');
         const res = await fetch('/api/library/open', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: pathVal, rescan: forceRescan, flat: flat })
+          body: JSON.stringify({ path: pathVal, rescan: forceRescan })
         });
         const data = await res.json();
         if (!data.ok) {
@@ -1797,32 +1793,6 @@
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = originalBtnText;
-      }
-    }
-
-    async function resetAllClustersPrompt() {
-      if (!confirm("Are you sure you want to reset all clusters? All photos will return to Review & Unassigned with zero clusters or folders.")) {
-        return;
-      }
-      try {
-        showToast('Resetting all clusters...');
-        const res = await fetch('/api/library/reset', { method: 'POST' });
-        const data = await res.json();
-        if (data.ok) {
-          DATA = data.payload;
-          relinkSessionItems();
-          selectedTier1 = 'ALL';
-          selectedTier2 = 'ALL';
-          selectedFilenames.clear();
-          closeFolderModal();
-          updateHeaderLibrary();
-          renderAll();
-          showToast(`✓ Reset complete: ${data.count} photos returned to Review & Unassigned.`, 'info');
-        } else {
-          showToast('Error resetting clusters: ' + (data.error || 'Unknown error'), 'error');
-        }
-      } catch (err) {
-        showToast('Failed to reset clusters: ' + err.message, 'error');
       }
     }
 

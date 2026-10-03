@@ -288,27 +288,6 @@ class TestServerAPI(unittest.TestCase):
             self.assertTrue(rem_res['ok'])
             self.assertNotIn(str(d1), rem_res['recent_libraries'])
 
-    def test_library_reset_endpoint(self):
-        # We start with items in Travel / Spain
-        self.assertIn("Travel / Spain", self.mgr.compute_payload()['node_stats'])
-
-        status, res = self.post_json('/api/library/reset', {})
-        self.assertEqual(status, 200)
-        self.assertTrue(res.get('ok'))
-        self.assertIn('count', res)
-        self.assertIn('payload', res)
-
-        # In payload, only system clusters remain
-        children = [c['name'] for c in res['payload']['cluster_tree']['children']]
-        self.assertEqual(children, ["Review & Unassigned", "Trash / To Delete"])
-
-        # All items must be unassigned
-        for it in res['payload']['items'].values():
-            self.assertEqual(it['cluster_path'], ["Review & Unassigned"])
-            self.assertEqual(it['status'], "unassigned")
-            self.assertTrue(it.get('need_review'))
-
 
 if __name__ == '__main__':
     unittest.main()
-

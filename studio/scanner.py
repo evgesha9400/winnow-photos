@@ -210,11 +210,10 @@ def extract_media_metadata(file_path: Path) -> Dict[str, Any]:
 def scan_directory(
     target_dir: str | Path,
     existing_state: Optional[Dict[str, Any]] = None,
-    rescan: bool = False,
-    flat: bool = False
+    rescan: bool = False
 ) -> Dict[str, Any]:
     """
-    Recursively scans target_dir, parses directory hierarchy into clusters (or keeps flat if flat=True),
+    Recursively scans target_dir, parses directory hierarchy into Level 1 and Level 2 clusters,
     extracts metadata, and merges with existing state preserving prior triage decisions.
     """
     root_path = Path(target_dir).resolve()
@@ -222,9 +221,9 @@ def scan_directory(
         raise ValueError(f"Path does not exist or is not a directory: {root_path}")
 
     # Initialize cluster tree
-    if not flat and existing_state and 'cluster_tree' in existing_state:
+    if existing_state and 'cluster_tree' in existing_state:
         tree = ClusterTree.from_dict(existing_state['cluster_tree'])
-    elif not flat and existing_state and 'tier1_clusters' in existing_state:
+    elif existing_state and 'tier1_clusters' in existing_state:
         tree = ClusterTree.from_legacy_tiers(
             existing_state.get('tier1_clusters', []),
             existing_state.get('tier2_clusters', {})
@@ -263,7 +262,7 @@ def scan_directory(
                     clean_parts.append(clean_p)
 
             # Determine cluster path and review depth
-            if flat or not clean_parts:
+            if not clean_parts:
                 cluster_path = ["Review & Unassigned"]
                 reviewed_depth = 0
                 default_t1_reviewed = False
@@ -287,7 +286,7 @@ def scan_directory(
 
             # 2. Check if item was already triaged in existing state
             prev = prev_items.get(filename)
-            if prev and not rescan and not flat:
+            if prev and not rescan:
                 # Retain human curation decisions
                 item_dict = dict(prev)
                 item_dict['disk_path'] = str(entry)
@@ -333,10 +332,7 @@ def scan_directory(
                 }
                 # If prev existed, preserve manual overrides
                 if prev:
-                    fields_to_preserve = ['taker_perspective', 'setting', 'location_or_event', 'visual_description']
-                    if not flat:
-                        fields_to_preserve.extend(['cluster_path', 'reviewed_depth', 'tier1_cluster', 'tier2_cluster', 'tier1_reviewed', 'tier2_reviewed', 'status', 'need_review'])
-                    for field in fields_to_preserve:
+                    for field in ['taker_perspective', 'setting', 'location_or_event', 'visual_description', 'cluster_path', 'reviewed_depth', 'tier1_cluster', 'tier2_cluster', 'tier1_reviewed', 'tier2_reviewed', 'status', 'need_review']:
                         if field in prev:
                             item_dict[field] = prev[field]
                     if prev.get('camera') and prev['camera'] != 'Unknown' and item_dict['camera'] == 'Unknown':
