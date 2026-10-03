@@ -703,18 +703,19 @@
     .session-btn-confirm:hover { background: var(--green); color: #fff; }
     .session-move-select {
       height: 24px;
+      width: 105px;
       box-sizing: border-box;
       display: inline-flex;
       align-items: center;
       background: #0d1117;
       border: 1px solid var(--border);
       color: var(--text-bright);
-      padding: 0 8px;
+      padding: 0 6px 0 8px;
       border-radius: 4px;
       font-size: 0.75rem;
       line-height: 24px;
       cursor: pointer;
-      max-width: 220px;
+      flex-shrink: 0;
     }
     .session-move-select:hover { border-color: var(--accent); }
     .session-btn-delete {
@@ -2450,7 +2451,7 @@
             <div class="session-header-right">
               ${confirmBtnHtml}
               <select class="session-move-select" onchange="handleSessionSelectPath('${s.session_key}', this)">
-                <option value="">${isTrashSession ? 'Restore All to... ▾' : 'Move All to... ▾'}</option>
+                <option value="" disabled selected hidden>${isTrashSession ? 'Restore to...' : 'Move to...'}</option>
                 ${selectOptionsHtml}
               </select>
               ${deleteBtnHtml}
