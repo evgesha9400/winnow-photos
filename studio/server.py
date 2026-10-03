@@ -16,7 +16,7 @@ import tempfile
 import hashlib
 from datetime import datetime
 from pathlib import Path
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, unquote
 from typing import Optional, Dict, Any, List
 
@@ -723,7 +723,8 @@ def run_server(port: int = 8766, initial_folder: Optional[str] = None, host: str
     manager = LibraryManager(initial_folder=initial_folder, force_rescan=force_rescan)
     handler_class = create_handler(manager)
     try:
-        server = HTTPServer((host, port), handler_class)
+        server = ThreadingHTTPServer((host, port), handler_class)
+        server.daemon_threads = True
     except OSError as e:
         if e.errno == 48:
             print(f"Error: Port {port} is already in use. Specify a different port using --port <number>.", file=sys.stderr)

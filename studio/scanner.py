@@ -16,6 +16,7 @@ from typing import Optional, Dict, Any, List, Tuple
 
 try:
     from PIL import Image, ExifTags
+    Image.MAX_IMAGE_PIXELS = None
     HAS_PIL = True
 except ImportError:
     HAS_PIL = False
@@ -137,7 +138,14 @@ def extract_media_metadata(file_path: Path) -> Dict[str, Any]:
         except Exception as e:
             logger.debug(f"PIL extraction error on {file_path.name}: {e}")
 
-    # 2. Exiftool fallback for videos or missing dates
+    # 2. Filename heuristic fallback
+    if meta['date'] is None:
+        fn_date = parse_date_from_filename(file_path.name)
+        if fn_date:
+            meta['date'] = fn_date
+            meta['session_date'] = fn_date
+
+    # 3. Exiftool fallback for videos or missing dates
     if (meta['date'] is None or is_video) and shutil.which('exiftool'):
         try:
             res = subprocess.run(
@@ -178,13 +186,6 @@ def extract_media_metadata(file_path: Path) -> Dict[str, Any]:
                                 pass
         except Exception as e:
             logger.debug(f"Exiftool fallback error on {file_path.name}: {e}")
-
-    # 3. Filename heuristic fallback
-    if meta['date'] is None:
-        fn_date = parse_date_from_filename(file_path.name)
-        if fn_date:
-            meta['date'] = fn_date
-            meta['session_date'] = fn_date
 
     # 4. Filesystem mtime fallback
     if meta['date'] is None:
