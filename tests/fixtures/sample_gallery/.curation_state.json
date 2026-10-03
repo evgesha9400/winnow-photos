@@ -1,0 +1,112 @@
+{
+  "root_dir": "/Users/evgesha/projects/03-experiments/photo-curation-studio/tests/sample_gallery",
+  "tier1_clusters": [
+    "Architecture",
+    "Portraits",
+    "Trash / To Delete",
+    "Review & Unassigned"
+  ],
+  "tier2_clusters": {
+    "Architecture": [
+      "Bridges"
+    ],
+    "Portraits": [
+      "Studio"
+    ],
+    "Trash / To Delete": [],
+    "Review & Unassigned": []
+  },
+  "items": {
+    "unassigned_pic.jpg": {
+      "filename": "unassigned_pic.jpg",
+      "disk_path": "/Users/evgesha/projects/03-experiments/photo-curation-studio/tests/sample_gallery/unassigned_pic.jpg",
+      "date": "2026:10:03",
+      "session_date": "2026:10:03",
+      "camera": "Unknown",
+      "gps": null,
+      "taker_perspective": "unknown",
+      "setting": null,
+      "location_or_event": null,
+      "visual_description": "Photo from Review & Unassigned",
+      "tier1_cluster": "Review & Unassigned",
+      "tier2_cluster": null,
+      "is_video": false,
+      "status": "unassigned",
+      "tier1_reviewed": false,
+      "tier2_reviewed": false
+    },
+    "modern.jpg": {
+      "filename": "modern.jpg",
+      "disk_path": "/Users/evgesha/projects/03-experiments/photo-curation-studio/tests/sample_gallery/Architecture/modern.jpg",
+      "date": "2026:10:03",
+      "session_date": "2026:10:03",
+      "camera": "Unknown",
+      "gps": null,
+      "taker_perspective": "unknown",
+      "setting": null,
+      "location_or_event": "Architecture",
+      "visual_description": "Photo from Architecture",
+      "tier1_cluster": "Architecture",
+      "tier2_cluster": null,
+      "is_video": false,
+      "status": "confirmed",
+      "tier1_reviewed": true,
+      "tier2_reviewed": false
+    },
+    "headshot.jpg": {
+      "filename": "headshot.jpg",
+      "disk_path": "/Users/evgesha/projects/03-experiments/photo-curation-studio/tests/sample_gallery/Portraits/Studio/headshot.jpg",
+      "date": "2026:10:03",
+      "session_date": "2026:10:03",
+      "camera": "Unknown",
+      "gps": null,
+      "taker_perspective": "unknown",
+      "setting": null,
+      "location_or_event": "Studio",
+      "visual_description": "Photo from Portraits - Studio",
+      "tier1_cluster": "Portraits",
+      "tier2_cluster": "Studio",
+      "is_video": false,
+      "status": "confirmed",
+      "tier1_reviewed": true,
+      "tier2_reviewed": true
+    },
+    "tower_bridge.jpg": {
+      "filename": "tower_bridge.jpg",
+      "disk_path": "/Users/evgesha/projects/03-experiments/photo-curation-studio/tests/sample_gallery/Architecture/Bridges/tower_bridge.jpg",
+      "date": "2026:10:03",
+      "session_date": "2026:10:03",
+      "camera": "Unknown",
+      "gps": null,
+      "taker_perspective": "unknown",
+      "setting": null,
+      "location_or_event": "Bridges",
+      "visual_description": "Photo from Architecture - Bridges",
+      "tier1_cluster": "Architecture",
+      "tier2_cluster": "Bridges",
+      "is_video": false,
+      "status": "confirmed",
+      "tier1_reviewed": true,
+      "tier2_reviewed": true
+    },
+    "brooklyn_bridge.jpg": {
+      "filename": "brooklyn_bridge.jpg",
+      "disk_path": "/Users/evgesha/projects/03-experiments/photo-curation-studio/tests/sample_gallery/Architecture/Bridges/brooklyn_bridge.jpg",
+      "date": "2026:10:03",
+      "session_date": "2026:10:03",
+      "camera": "Unknown",
+      "gps": null,
+      "taker_perspective": "unknown",
+      "setting": null,
+      "location_or_event": "Bridges",
+      "visual_description": "Photo from Architecture - Bridges",
+      "tier1_cluster": "Architecture",
+      "tier2_cluster": "Bridges",
+      "is_video": false,
+      "status": "confirmed",
+      "tier1_reviewed": true,
+      "tier2_reviewed": true
+    }
+  },
+  "last_scanned": "2026-10-03T16:38:50.575762"
+}
