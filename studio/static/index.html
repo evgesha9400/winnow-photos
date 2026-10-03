@@ -40,7 +40,9 @@
     header {
       background: var(--panel);
       border-bottom: 1px solid var(--border);
-      padding: 10px 20px;
+      padding: 0 20px;
+      height: 48px;
+      box-sizing: border-box;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -50,71 +52,64 @@
     .header-left {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
+      height: 30px;
     }
     h1 {
       font-size: 1.05rem;
       font-weight: 700;
       color: var(--text-bright);
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 8px;
+      margin: 0;
+      height: 30px;
+      line-height: 1;
     }
     h1 .badge {
       background: rgba(88, 166, 255, 0.15);
       color: var(--accent);
       border: 1px solid rgba(88, 166, 255, 0.3);
-      padding: 2px 8px;
+      padding: 0 8px;
       border-radius: 10px;
-      font-size: 0.75rem;
-    }
-
-    .pass-toggle-group {
-      display: flex;
-      background: #0d1117;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 2px;
-      gap: 2px;
-    }
-    .pass-btn {
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      padding: 6px 14px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .pass-btn.active {
-      background: #21262d;
-      color: var(--accent);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    }
-    .pass-btn.active.purple {
-      color: var(--purple);
+      font-size: 0.72rem;
+      height: 20px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      box-sizing: border-box;
     }
 
     .triage-toggle-group {
-      display: flex;
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      box-sizing: border-box;
       background: #0d1117;
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 2px;
       gap: 2px;
-      margin-left: 8px;
+      margin-left: 4px;
     }
     .triage-btn {
       background: transparent;
       border: none;
       color: var(--muted);
-      padding: 5px 10px;
+      padding: 0 10px;
+      height: 22px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
       border-radius: 4px;
       font-size: 0.75rem;
       font-weight: 600;
+      line-height: 1;
       cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.12s;
     }
     .triage-btn.active {
       background: #21262d;
@@ -128,10 +123,14 @@
     .header-right {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
+      height: 30px;
     }
     .view-mode-group {
-      display: flex;
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      box-sizing: border-box;
       background: #0d1117;
       border: 1px solid var(--border);
       border-radius: 6px;
@@ -142,11 +141,20 @@
       background: transparent;
       border: none;
       color: var(--muted);
-      padding: 5px 12px;
+      padding: 0 11px;
+      height: 22px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
+      line-height: 1;
       cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.12s;
     }
     .view-mode-btn.active {
       background: #21262d;
@@ -156,14 +164,20 @@
       background: var(--green);
       color: #fff;
       border: 1px solid rgba(255,255,255,0.2);
-      padding: 6px 14px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
+      padding: 0 12px;
+      height: 28px;
+      box-sizing: border-box;
+      display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
     }
     .apply-btn:hover { background: var(--green-bright); }
 
@@ -187,7 +201,9 @@
       flex-shrink: 0;
     }
     .sidebar-header {
-      padding: 12px 16px;
+      padding: 0 16px;
+      height: 44px;
+      box-sizing: border-box;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
@@ -199,15 +215,25 @@
       color: var(--muted);
     }
     .sidebar-action-btn {
+      height: 24px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
       background: transparent;
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 2px 8px;
+      padding: 0 8px;
       border-radius: 4px;
       font-size: 0.75rem;
+      font-weight: 500;
+      line-height: 1;
       cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.12s;
     }
-    .sidebar-action-btn:hover { background: #21262d; }
+    .sidebar-action-btn:hover { background: #21262d; border-color: var(--border-bright); }
 
     .cluster-list {
       flex: 1;
@@ -317,7 +343,13 @@
       color: var(--muted);
       cursor: pointer;
       font-size: 0.75rem;
-      padding: 2px 5px;
+      height: 20px;
+      width: 20px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
       border-radius: 4px;
       line-height: 1;
       transition: all 0.1s;
@@ -356,31 +388,46 @@
       color: var(--text-bright);
     }
 
+    /* NORMALIZED ICON / EMOJI GLYPHS */
+    .icon-glyph {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-size: 0.92em;
+      flex-shrink: 0;
+      vertical-align: middle;
+      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    }
+
     /* BREADCRUMB & LEVEL CONTROL BAR */
     .parent-banner {
       background: #161b22;
       border-bottom: 1px solid var(--border);
-      padding: 10px 20px;
+      padding: 0 20px;
+      height: 44px;
+      box-sizing: border-box;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
       gap: 16px;
     }
-    .parent-banner-left {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      overflow: hidden;
-    }
     .breadcrumbs-bar {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.95rem;
-      flex-wrap: wrap;
+      font-size: 0.92rem;
+      height: 28px;
+      overflow: hidden;
+      white-space: nowrap;
     }
     .breadcrumb-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 28px;
+      line-height: 1;
       color: var(--accent);
       cursor: pointer;
       font-weight: 600;
@@ -394,39 +441,43 @@
       text-decoration: none;
     }
     .breadcrumb-sep {
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      line-height: 1;
       color: var(--muted);
       font-size: 0.75rem;
     }
-    .subcluster-chips-bar {
+    .banner-actions {
       display: flex;
       align-items: center;
       gap: 6px;
-      overflow-x: auto;
-      padding: 2px 0;
+      flex-shrink: 0;
+      height: 28px;
     }
-    .subcluster-chip {
+    .banner-action-btn {
+      height: 28px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
       background: #21262d;
       border: 1px solid var(--border);
-      padding: 3px 10px;
-      border-radius: 12px;
-      font-size: 0.75rem;
       color: var(--text);
+      padding: 0 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      line-height: 1;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
       white-space: nowrap;
       transition: all 0.12s;
     }
-    .subcluster-chip:hover {
-      border-color: var(--accent);
+    .banner-action-btn:hover {
+      background: #30363d;
       color: var(--text-bright);
-      background: #2d333b;
-    }
-    .subcluster-chip .chip-count {
-      font-size: 0.7rem;
-      color: var(--muted);
-      font-family: monospace;
+      border-color: var(--border-bright);
     }
 
     /* MAIN VIEW CONTAINER */
@@ -446,7 +497,9 @@
     .batch-bar {
       background: #1f2937;
       border-bottom: 1px solid #374151;
-      padding: 8px 20px;
+      padding: 0 20px;
+      height: 44px;
+      box-sizing: border-box;
       display: none;
       align-items: center;
       justify-content: space-between;
@@ -457,12 +510,26 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      height: 28px;
+    }
+    .batch-actions button,
+    .batch-actions select {
+      height: 28px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      padding: 0 10px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
     }
     .batch-select {
       background: #0d1117;
       border: 1px solid var(--border);
       color: var(--text-bright);
-      padding: 5px 10px;
+      padding: 0 10px;
       border-radius: 6px;
       font-size: 0.8rem;
     }
@@ -487,7 +554,7 @@
       border-left: 3px solid var(--green);
     }
     .session-header {
-      padding: 6px 14px;
+      padding: 0 12px;
       height: 38px;
       box-sizing: border-box;
       background: #161b22;
@@ -505,6 +572,7 @@
       gap: 6px;
       min-width: 0;
       flex: 1 1 auto;
+      height: 24px;
       overflow-x: auto;
       overflow-y: hidden;
       white-space: nowrap;
@@ -514,13 +582,20 @@
       display: none;
     }
     .session-select-pill {
+      height: 24px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
       background: #21262d;
       border: 1px solid var(--border);
       color: var(--text-bright);
-      padding: 2px 8px;
+      padding: 0 8px;
       border-radius: 4px;
       font-size: 0.72rem;
       font-weight: 600;
+      line-height: 1;
       cursor: pointer;
       flex-shrink: 0;
       transition: all 0.12s;
@@ -530,32 +605,46 @@
       border-color: var(--accent);
     }
     .session-date {
-      font-size: 0.82rem;
+      height: 24px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.78rem;
       font-weight: 700;
+      line-height: 1;
       color: var(--text-bright);
       flex-shrink: 0;
     }
     .session-count-tag {
+      height: 24px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
       font-size: 0.72rem;
+      line-height: 1;
       color: var(--muted);
       font-family: monospace;
       flex-shrink: 0;
     }
     .session-meta-pill {
-      font-size: 0.7rem;
+      height: 24px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      line-height: 1;
       color: var(--muted);
       background: #21262d;
       border: 1px solid var(--border);
-      padding: 1px 6px;
+      padding: 0 8px;
       border-radius: 4px;
-      max-width: 180px;
+      max-width: 200px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       flex-shrink: 0;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
     }
     .session-meta-pill.clickable {
       cursor: pointer;
@@ -568,11 +657,17 @@
       color: var(--accent);
     }
     .session-reviewed-pill {
-      font-size: 0.7rem;
+      height: 24px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      line-height: 1;
       color: var(--green-bright);
       background: rgba(46, 160, 67, 0.15);
       border: 1px solid rgba(46, 160, 67, 0.3);
-      padding: 1px 6px;
+      padding: 0 8px;
       border-radius: 4px;
       font-weight: 600;
       flex-shrink: 0;
@@ -583,43 +678,59 @@
       gap: 6px;
       flex-shrink: 0;
       white-space: nowrap;
+      height: 24px;
     }
     .session-btn-confirm {
+      height: 24px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
       background: rgba(35, 134, 54, 0.2);
       border: 1px solid var(--green);
       color: var(--green-bright);
-      padding: 3px 10px;
-      border-radius: 5px;
+      padding: 0 10px;
+      border-radius: 4px;
       font-size: 0.75rem;
       font-weight: 600;
+      line-height: 1;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
+      white-space: nowrap;
       transition: all 0.12s;
     }
     .session-btn-confirm:hover { background: var(--green); color: #fff; }
     .session-move-select {
+      height: 24px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
       background: #0d1117;
       border: 1px solid var(--border);
       color: var(--text-bright);
-      padding: 3px 8px;
-      border-radius: 5px;
+      padding: 0 8px;
+      border-radius: 4px;
       font-size: 0.75rem;
+      line-height: 24px;
       cursor: pointer;
       max-width: 220px;
     }
     .session-move-select:hover { border-color: var(--accent); }
     .session-btn-delete {
+      height: 24px;
+      width: 24px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       background: transparent;
       border: 1px solid transparent;
       color: var(--muted);
-      padding: 3px 6px;
-      border-radius: 5px;
-      font-size: 0.8rem;
+      padding: 0;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      line-height: 1;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
       transition: all 0.12s;
     }
     .session-btn-delete:hover {
@@ -1143,7 +1254,10 @@
       background: #161b22;
       border: 1px solid var(--border);
       color: var(--text-bright);
-      padding: 5px 11px;
+      padding: 0 10px;
+      height: 28px;
+      box-sizing: border-box;
+      line-height: 1;
       border-radius: 6px;
       font-size: 0.78rem;
       cursor: pointer;
@@ -1153,6 +1267,16 @@
       border-color: var(--accent);
       background: #21262d;
       color: #fff;
+    }
+    .header-right .btn-secondary {
+      height: 28px;
+      box-sizing: border-box;
+      padding: 0 10px;
+      font-size: 0.78rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
     .purple-badge {
       font-size: 0.72rem;
@@ -1205,19 +1329,15 @@
         <span class="badge" id="libraryCountBadge">Loading...</span>
       </h1>
       <button class="library-folder-btn" onclick="openFolderModal()" title="Current photo library. Click to open or scan a different folder on your PC.">
-        <span>📁</span>
+        <span class="icon-glyph">📁</span>
         <span id="headerLibraryName" style="max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">Open Folder...</span>
         <span style="font-size: 0.65rem; color: var(--accent);">▼</span>
       </button>
-      <div class="pass-toggle-group">
-        <button class="pass-btn active" id="btnPass1" onclick="setPassMode(1)">Pass 1: Top-Level</button>
-        <button class="pass-btn purple" id="btnPass2" onclick="setPassMode(2)">Pass 2: Subclusters</button>
-      </div>
 
       <!-- TRIAGE INBOX FILTER -->
       <div class="triage-toggle-group">
-        <button class="triage-btn active inbox" id="btnTriageInbox" onclick="setTriageMode('pending')" title="Show only items needing your review">⏳ To Review</button>
-        <button class="triage-btn" id="btnTriageReviewed" onclick="setTriageMode('reviewed')" title="Show items confirmed/completed">✓ Reviewed</button>
+        <button class="triage-btn active inbox" id="btnTriageInbox" onclick="setTriageMode('pending')" title="Show only items needing your review"><span class="icon-glyph">⏳</span> To Review</button>
+        <button class="triage-btn" id="btnTriageReviewed" onclick="setTriageMode('reviewed')" title="Show items confirmed/completed"><span class="icon-glyph">✓</span> Reviewed</button>
         <button class="triage-btn" id="btnTriageAll" onclick="setTriageMode('all')" title="Show everything">All</button>
       </div>
     </div>
@@ -1229,7 +1349,7 @@
         <button class="view-mode-btn" id="btnViewFocus" onclick="setViewMode('focus')">Focus [F]</button>
       </div>
       <button class="btn-secondary" id="btnUndo" style="display:none; align-items:center; gap:6px; font-weight:600;" onclick="triggerUndo()" title="Undo last action (Cmd+Z / Ctrl+Z)">
-        ↩ Undo
+        <span class="icon-glyph">↩</span> Undo
       </button>
       <button class="apply-btn" onclick="openApplyPreviewModal()">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
@@ -1246,7 +1366,7 @@
       <div class="sidebar-header">
         <span id="sidebarTitle">Top-Level Clusters</span>
         <div style="display:flex; align-items:center; gap:4px;">
-          <button class="sidebar-action-btn" style="color:var(--accent); border-color:rgba(88,166,255,0.4);" onclick="openGeminiSuggestModal('top_level')" title="AI Suggestions for Top-Level Clusters">✨ AI</button>
+          <button class="sidebar-action-btn" style="color:var(--accent); border-color:rgba(88,166,255,0.4);" onclick="openGeminiSuggestModal('top_level')" title="AI Suggestions for Top-Level Clusters"><span class="icon-glyph">✨</span> AI</button>
           <button class="sidebar-action-btn" id="sidebarNewBtn" onclick="openCreateClusterModal()">+ New</button>
         </div>
       </div>
@@ -1260,15 +1380,12 @@
 
       <!-- BREADCRUMB & LEVEL CONTROL BAR -->
       <div class="parent-banner" id="parentBanner">
-        <div class="parent-banner-left">
-          <div class="breadcrumbs-bar" id="breadcrumbsBar"></div>
-          <div class="subcluster-chips-bar" id="subclusterChipsBar" style="display:none;"></div>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;" id="breadcrumbActions">
-          <button class="sidebar-action-btn" id="btnBreadcrumbRename" onclick="handleBreadcrumbRename()">✎ Rename</button>
-          <button class="sidebar-action-btn" id="btnBreadcrumbDelete" style="color:#f85149;" onclick="handleBreadcrumbDelete()">🗑 Delete</button>
-          <button class="sidebar-action-btn" id="btnBreadcrumbAiSuggest" style="color:var(--accent); border-color:rgba(88,166,255,0.4);" onclick="handleBreadcrumbAiSuggest()">✨ AI</button>
-          <button class="sidebar-action-btn" id="btnBreadcrumbAddChild" style="color:var(--accent); border-color:rgba(88,166,255,0.4);" onclick="handleBreadcrumbAddChild()">+ New Cluster</button>
+        <div class="breadcrumbs-bar" id="breadcrumbsBar"></div>
+        <div class="banner-actions" id="breadcrumbActions">
+          <button class="banner-action-btn" id="btnBreadcrumbRename" onclick="handleBreadcrumbRename()"><span class="icon-glyph">✎</span> Rename</button>
+          <button class="banner-action-btn" id="btnBreadcrumbDelete" style="color:#f85149;" onclick="handleBreadcrumbDelete()"><span class="icon-glyph">🗑</span> Delete</button>
+          <button class="banner-action-btn" id="btnBreadcrumbAiSuggest" style="color:var(--accent); border-color:rgba(88,166,255,0.4);" onclick="handleBreadcrumbAiSuggest()"><span class="icon-glyph">✨</span> AI</button>
+          <button class="banner-action-btn" id="btnBreadcrumbAddChild" style="color:var(--accent); border-color:rgba(88,166,255,0.4);" onclick="handleBreadcrumbAddChild()">+ New Cluster</button>
         </div>
       </div>
 
@@ -1276,17 +1393,17 @@
       <div class="batch-bar" id="batchBar">
         <div><b id="selectedCountText">0 photos</b> selected</div>
         <div class="batch-actions">
-          <span id="batchActionLabel">Move selected to:</span>
+          <span id="batchActionLabel" style="line-height:28px;">Move selected to:</span>
           <select class="batch-select" id="batchTargetSelect"></select>
-          <button class="btn-primary" style="padding:4px 10px; font-size:0.8rem;" onclick="executeBatchMove()">Move</button>
-          <button class="session-btn-confirm" style="padding:4px 10px; font-size:0.8rem;" onclick="executeBatchConfirm()">✓ Confirm</button>
+          <button class="btn-primary" onclick="executeBatchMove()">Move</button>
+          <button class="session-btn-confirm" onclick="executeBatchConfirm()"><span class="icon-glyph">✓</span> Confirm</button>
           <span id="batchParentGroup" style="display:none; align-items:center; gap:6px;">
-            <span style="color:var(--muted); font-size:0.8rem;">or to Parent:</span>
+            <span style="color:var(--muted); font-size:0.8rem; line-height:28px;">or to Parent:</span>
             <select class="batch-select" id="batchParentTargetSelect"></select>
-            <button class="btn-secondary" style="padding:4px 8px; font-size:0.8rem; border-color:rgba(88,166,255,0.4); color:var(--accent);" onclick="executeBatchMoveParent()">Move Parent</button>
+            <button class="btn-secondary" style="border-color:rgba(88,166,255,0.4); color:var(--accent);" onclick="executeBatchMoveParent()">Move Parent</button>
           </span>
-          <button class="btn-danger" style="padding:4px 10px; font-size:0.8rem;" onclick="executeBatchDelete()">🗑 Delete</button>
-          <button class="btn-secondary" style="padding:4px 8px; font-size:0.8rem;" onclick="clearSelection()">Clear</button>
+          <button class="btn-danger" onclick="executeBatchDelete()"><span class="icon-glyph">🗑</span> Delete</button>
+          <button class="btn-secondary" onclick="clearSelection()">Clear</button>
         </div>
       </div>
 
@@ -1326,11 +1443,11 @@
 
           <div>
             <div style="display:flex; gap:8px; margin-bottom:8px;">
-              <button class="session-btn-confirm" style="flex:1; padding:8px; font-size:0.85rem;" onclick="confirmFocusCurrent()">✓ Confirm & Next [C]</button>
-              <button class="session-btn-delete" style="padding:8px 12px; font-size:0.85rem;" onclick="deleteFocusCurrent()" title="Move to Trash [D / Backspace]">🗑 Trash [D]</button>
+              <button class="session-btn-confirm" style="flex:1; height:32px; font-size:0.85rem;" onclick="confirmFocusCurrent()"><span class="icon-glyph">✓</span> Confirm & Next [C]</button>
+              <button class="session-btn-delete" style="height:32px; width:auto; padding:0 12px; font-size:0.85rem;" onclick="deleteFocusCurrent()" title="Move to Trash [D / Backspace]"><span class="icon-glyph">🗑</span> Trash [D]</button>
             </div>
-            <button class="btn-secondary" style="width:100%; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:6px; color:var(--accent); border-color:rgba(88,166,255,0.4);" onclick="openGeminiSuggestModal('photo')">
-              ✨ AI Suggest for this Photo [A]
+            <button class="btn-secondary" style="width:100%; height:32px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:6px; color:var(--accent); border-color:rgba(88,166,255,0.4);" onclick="openGeminiSuggestModal('photo')">
+              <span class="icon-glyph">✨</span> AI Suggest for this Photo [A]
             </button>
             <div class="panel-section-title" id="focusAssignTitle">Assign Top-Level Cluster (Keys 1-9)</div>
             <div class="hotkey-btn-grid" id="focusHotkeyButtons"></div>
@@ -1835,18 +1952,16 @@
     function renderParentBanner() {
       const banner = document.getElementById('parentBanner');
       const bcContainer = document.getElementById('breadcrumbsBar');
-      const chipsContainer = document.getElementById('subclusterChipsBar');
       const btnRename = document.getElementById('btnBreadcrumbRename');
       const btnDelete = document.getElementById('btnBreadcrumbDelete');
 
       banner.style.display = 'flex';
       bcContainer.innerHTML = '';
-      chipsContainer.innerHTML = '';
 
       const isRoot = activeClusterPath.length === 0;
 
       // Breadcrumbs
-      let crumbsHtml = `<span class="breadcrumb-item ${isRoot ? 'current' : ''}" onclick="navigateToPath([])">🏠 All Photos</span>`;
+      let crumbsHtml = `<span class="breadcrumb-item ${isRoot ? 'current' : ''}" onclick="navigateToPath([])"><span class="icon-glyph">🏠</span> All Photos</span>`;
       for (let i = 0; i < activeClusterPath.length; i++) {
         const part = activeClusterPath[i];
         const isLast = (i === activeClusterPath.length - 1);
@@ -1883,37 +1998,6 @@
       const btnAiSuggest = document.getElementById('btnBreadcrumbAiSuggest');
       if (btnAiSuggest) {
         btnAiSuggest.title = isRoot ? 'AI suggestions for top-level clusters' : `AI suggestions for subclusters in "${activeClusterPath.join(' / ')}"`;
-      }
-
-      // Find active node in tree
-      let currNode = DATA.cluster_tree;
-      for (const part of activeClusterPath) {
-        if (currNode && currNode.children) {
-          currNode = currNode.children.find(c => c.name.toLowerCase() === part.toLowerCase());
-        }
-      }
-
-      if (currNode && currNode.children && currNode.children.length > 0) {
-        chipsContainer.style.display = 'flex';
-        const labelText = isRoot ? 'Clusters:' : 'Subclusters:';
-        let chipsHtml = `<span style="font-size:0.75rem; color:var(--muted); font-weight:600; margin-right:4px;">${labelText}</span>`;
-        currNode.children.forEach(child => {
-          const childPath = [...activeClusterPath, child.name];
-          const childKey = childPath.join(' / ');
-          const cStats = (DATA.node_stats && DATA.node_stats[childKey]) || { total: 0, reviewed: 0 };
-          const prefix = isRoot ? '📁 ' : '↳ ';
-          chipsHtml += `
-            <div class="subcluster-chip" onclick="navigateToPath(${JSON.stringify(childPath).replace(/"/g, '&quot;')})">
-              <span>${prefix}${escapeHtml(child.name)}</span>
-              <span class="chip-count">(${cStats.reviewed}/${cStats.total})</span>
-            </div>
-          `;
-        });
-        const newBtnText = isRoot ? '+ New Cluster' : '+ New Subcluster';
-        chipsHtml += `<button class="mini-icon-btn" style="border:1px solid var(--border); padding:3px 8px; border-radius:12px; color:var(--accent);" onclick="openCreateClusterModal(${JSON.stringify(activeClusterPath).replace(/"/g, '&quot;')})">${newBtnText}</button>`;
-        chipsContainer.innerHTML = chipsHtml;
-      } else {
-        chipsContainer.style.display = 'none';
       }
     }
 
@@ -2021,8 +2105,8 @@
       const actionsHtml = (!isTrash && !isUnassigned) ? `
         <div class="cluster-row-actions">
           <button class="mini-icon-btn" title="Add Subcluster" onclick="event.stopPropagation(); openCreateClusterModal(${JSON.stringify(nodePath).replace(/"/g, '&quot;')})">+</button>
-          <button class="mini-icon-btn" title="Rename" onclick="event.stopPropagation(); openRenameClusterModal(${JSON.stringify(nodePath).replace(/"/g, '&quot;')})">✎</button>
-          <button class="mini-icon-btn btn-delete-cluster" title="Delete" onclick="event.stopPropagation(); openDeleteClusterModal(${JSON.stringify(nodePath).replace(/"/g, '&quot;')})">🗑</button>
+          <button class="mini-icon-btn" title="Rename" onclick="event.stopPropagation(); openRenameClusterModal(${JSON.stringify(nodePath).replace(/"/g, '&quot;')})"><span class="icon-glyph">✎</span></button>
+          <button class="mini-icon-btn btn-delete-cluster" title="Delete" onclick="event.stopPropagation(); openDeleteClusterModal(${JSON.stringify(nodePath).replace(/"/g, '&quot;')})"><span class="icon-glyph">🗑</span></button>
         </div>
       ` : '';
 
@@ -2266,11 +2350,11 @@
 
         // Action Buttons: Confirm vs Move All dropdown vs Trash
         const confirmBtnHtml = (!isTrashSession)
-          ? `<button class="session-btn-confirm" onclick="confirmSession('${s.session_key}')">${isReviewed ? '✓ Confirmed' : '✓ Confirm'}</button>`
+          ? `<button class="session-btn-confirm" onclick="confirmSession('${s.session_key}')">${isReviewed ? '<span class="icon-glyph">✓</span> Confirmed' : '<span class="icon-glyph">✓</span> Confirm'}</button>`
           : '';
 
         const deleteBtnHtml = (!isTrashSession)
-          ? `<button class="session-btn-delete" onclick="deleteSession('${s.session_key}')" title="Move session to Trash">🗑</button>`
+          ? `<button class="session-btn-delete" onclick="deleteSession('${s.session_key}')" title="Move session to Trash"><span class="icon-glyph">🗑</span></button>`
           : '';
 
         // Full paths dropdown
@@ -2293,44 +2377,44 @@
 
         // Cameras
         sCameras.forEach(cam => {
-          metaPillsHtml += `<span class="session-meta-pill clickable" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(cam)}')" title="Camera: ${escapeHtml(cam)} (Click to create cluster from tag)">📷 ${escapeHtml(cam)}</span>`;
+          metaPillsHtml += `<span class="session-meta-pill clickable" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(cam)}')" title="Camera: ${escapeHtml(cam)} (Click to create cluster from tag)"><span class="icon-glyph">📷</span> ${escapeHtml(cam)}</span>`;
         });
 
         // Locations
         sLocs.forEach(loc => {
-          metaPillsHtml += `<span class="session-meta-pill clickable" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(loc)}')" title="Location: ${escapeHtml(loc)} (Click to create cluster from tag)">📍 ${escapeHtml(loc)}</span>`;
+          metaPillsHtml += `<span class="session-meta-pill clickable" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(loc)}')" title="Location: ${escapeHtml(loc)} (Click to create cluster from tag)"><span class="icon-glyph">📍</span> ${escapeHtml(loc)}</span>`;
         });
 
         // Settings
         sSettings.forEach(st => {
           const label = formatSettingTag(st);
-          metaPillsHtml += `<span class="session-meta-pill clickable" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(label)}')" title="Setting: ${escapeHtml(label)} (Click to create cluster from tag)">🏷️ ${escapeHtml(label)}</span>`;
+          metaPillsHtml += `<span class="session-meta-pill clickable" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(label)}')" title="Setting: ${escapeHtml(label)} (Click to create cluster from tag)"><span class="icon-glyph">🏷️</span> ${escapeHtml(label)}</span>`;
         });
 
         // Perspectives
         sPersps.filter(p => p !== 'unknown').forEach(tp => {
           const label = formatPerspectiveTag(tp);
-          metaPillsHtml += `<span class="session-meta-pill clickable" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(label)}')" title="Perspective: ${escapeHtml(label)} (Click to create cluster from tag)">👤 ${escapeHtml(label)}</span>`;
+          metaPillsHtml += `<span class="session-meta-pill clickable" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(label)}')" title="Perspective: ${escapeHtml(label)} (Click to create cluster from tag)"><span class="icon-glyph">👤</span> ${escapeHtml(label)}</span>`;
         });
 
         // GPS Coordinates
         sGps.forEach(gps => {
-          metaPillsHtml += `<span class="session-meta-pill" title="GPS: ${escapeHtml(gps)}">🌐 ${escapeHtml(gps)}</span>`;
+          metaPillsHtml += `<span class="session-meta-pill" title="GPS: ${escapeHtml(gps)}"><span class="icon-glyph">🌐</span> ${escapeHtml(gps)}</span>`;
         });
 
         // If at root "All Photos", show compact cluster indicator
         const clusterTagHtml = (activeClusterPath.length === 0 && cp.length > 0)
-          ? `<span class="session-meta-pill" style="color:var(--accent); border-color:rgba(88,166,255,0.3);" title="Cluster: ${escapeHtml(cp.join(' / '))}">📁 ${escapeHtml(cp[cp.length - 1])}</span>`
+          ? `<span class="session-meta-pill" style="color:var(--accent); border-color:rgba(88,166,255,0.3);" title="Cluster: ${escapeHtml(cp.join(' / '))}"><span class="icon-glyph">📁</span> ${escapeHtml(cp[cp.length - 1])}</span>`
           : '';
 
         card.innerHTML = `
           <div class="session-header">
             <div class="session-header-left">
-              <button class="session-select-pill" onclick="toggleSelectSession('${s.session_key}')" title="Select / deselect all photos in this session">☑ ${s.items.length}</button>
-              <span class="session-date">📅 ${s.session_date}</span>
+              <button class="session-select-pill" onclick="toggleSelectSession('${s.session_key}')" title="Select / deselect all photos in this session"><span class="icon-glyph">☑</span> ${s.items.length}</button>
+              <span class="session-date"><span class="icon-glyph">📅</span> ${s.session_date}</span>
               <span class="session-count-tag">${s.items.length} photo${s.items.length === 1 ? '' : 's'}</span>
               ${clusterTagHtml}
-              ${isReviewed ? `<span class="session-reviewed-pill">✓ Reviewed</span>` : ''}
+              ${isReviewed ? `<span class="session-reviewed-pill"><span class="icon-glyph">✓</span> Reviewed</span>` : ''}
               ${metaPillsHtml}
             </div>
             <div class="session-header-right">
@@ -2356,7 +2440,7 @@
           const itCp = it.cluster_path || [it.tier1_cluster || 'Review & Unassigned'];
           wrap.innerHTML = `
             <input type="checkbox" class="thumb-select-check" ${selectedFilenames.has(it.filename) ? 'checked' : ''} onclick="event.stopPropagation(); handleSessionThumbSelect('${s.session_key}', '${it.filename}', ${idx}, event)">
-            ${itCp[0] !== 'Trash / To Delete' ? `<button class="thumb-trash-btn" onclick="event.stopPropagation(); deleteSingleItem('${it.filename}')" title="Move to Trash">🗑</button>` : ''}
+            ${itCp[0] !== 'Trash / To Delete' ? `<button class="thumb-trash-btn" onclick="event.stopPropagation(); deleteSingleItem('${it.filename}')" title="Move to Trash"><span class="icon-glyph">🗑</span></button>` : ''}
             ${isVid
               ? `<video src="/image/${encodeURIComponent(it.filename)}" preload="metadata" muted playsinline></video><span class="thumb-badge">▶</span>`
               : `<img src="/thumb/${encodeURIComponent(it.filename)}" onerror="this.onerror=null;this.src='/image/' + encodeURIComponent('${escapeJs(it.filename)}');" loading="lazy">`
@@ -2531,7 +2615,7 @@
         card.innerHTML = `
           <div class="grid-media-wrap">
             <input type="checkbox" class="grid-select-check" ${selectedFilenames.has(it.filename) ? 'checked' : ''} onclick="event.stopPropagation(); handleGridThumbSelect('${it.filename}', ${idx}, event)">
-            ${cp[0] !== 'Trash / To Delete' ? `<button class="grid-trash-btn" onclick="event.stopPropagation(); deleteSingleItem('${it.filename}')" title="Move to Trash">🗑</button>` : ''}
+            ${cp[0] !== 'Trash / To Delete' ? `<button class="grid-trash-btn" onclick="event.stopPropagation(); deleteSingleItem('${it.filename}')" title="Move to Trash"><span class="icon-glyph">🗑</span></button>` : ''}
             ${isVid
               ? `<video src="/image/${encodeURIComponent(it.filename)}" preload="metadata" muted playsinline></video>`
               : `<img src="/thumb/${encodeURIComponent(it.filename)}" onerror="this.onerror=null;this.src='/image/' + encodeURIComponent('${escapeJs(it.filename)}');" loading="lazy">`
