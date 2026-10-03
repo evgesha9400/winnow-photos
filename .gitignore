@@ -28,3 +28,5 @@ Thumbs.db
 *.log
 .apply_manifest_*.json
 apply_manifest_*.json
+.curation_state.json
+.curation_thumbs/
