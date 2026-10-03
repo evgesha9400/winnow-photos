@@ -92,6 +92,55 @@ class TestScanner(unittest.TestCase):
         # 5. Trash item
         self.assertEqual(items["bad.jpg"]["tier1_cluster"], "Trash / To Delete")
 
+        # 6. Check cluster_tree exists
+        self.assertIn('cluster_tree', state)
+        from studio.cluster_tree import ClusterTree
+        tree = ClusterTree.from_dict(state['cluster_tree'])
+        self.assertIsNotNone(tree.find_node(["Travel", "Spain 2021"]))
+        self.assertIsNotNone(tree.find_node(["Events", "Birthday"]))
+
+    def test_deep_nested_hierarchy_extraction(self):
+        deep_dir = self.root / "Vacations" / "Europe" / "Spain" / "Costa Brava" / "Tossa"
+        deep_dir.mkdir(parents=True)
+        (deep_dir / "beach.jpg").touch()
+
+        state = scan_directory(self.root)
+        self.assertIn("beach.jpg", state['items'])
+        it = state['items']["beach.jpg"]
+        self.assertEqual(it['cluster_path'], ["Vacations", "Europe", "Spain", "Costa Brava", "Tossa"])
+        self.assertEqual(it['reviewed_depth'], 5)
+
+        from studio.cluster_tree import ClusterTree
+        tree = ClusterTree.from_dict(state['cluster_tree'])
+        self.assertIsNotNone(tree.find_node(["Vacations", "Europe", "Spain", "Costa Brava", "Tossa"]))
+
+
+    def test_rescan_preserves_curation_state(self):
+        # Initial scan
+        state = scan_directory(self.root)
+        unassigned_it = state['items']["unassigned.jpg"]
+        unassigned_it['status'] = "unassigned"
+        unassigned_it['need_review'] = True
+        unassigned_it['visual_description'] = "Curated description for unassigned photo"
+
+        vacation_it = state['items']["vacation.jpg"]
+        vacation_it['cluster_path'] = ["Travel", "Spain 2021", "Beach"]
+        vacation_it['reviewed_depth'] = 3
+        vacation_it['status'] = "confirmed"
+
+        # Perform rescan with existing_state provided
+        rescanned = scan_directory(self.root, existing_state=state, rescan=True)
+        res_unassigned = rescanned['items']["unassigned.jpg"]
+        self.assertEqual(res_unassigned['status'], "unassigned")
+        self.assertTrue(res_unassigned.get('need_review'))
+        self.assertEqual(res_unassigned['visual_description'], "Curated description for unassigned photo")
+
+        res_vacation = rescanned['items']["vacation.jpg"]
+        self.assertEqual(res_vacation['cluster_path'], ["Travel", "Spain 2021", "Beach"])
+        self.assertEqual(res_vacation['reviewed_depth'], 3)
+        self.assertEqual(res_vacation['status'], "confirmed")
+
 
 if __name__ == '__main__':
     unittest.main()
+

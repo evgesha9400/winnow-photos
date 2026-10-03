@@ -20,6 +20,8 @@ try:
 except ImportError:
     HAS_PIL = False
 
+from studio.cluster_tree import ClusterTree
+
 logger = logging.getLogger("curation_studio.scanner")
 
 IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.heic', '.webp', '.bmp', '.tiff', '.gif'}
@@ -217,13 +219,19 @@ def scan_directory(
     if not root_path.exists() or not root_path.is_dir():
         raise ValueError(f"Path does not exist or is not a directory: {root_path}")
 
-    # Index existing items by filename to preserve human review decisions
-    prev_items = existing_state.get('items', {}) if existing_state else {}
-    prev_tier1 = set(existing_state.get('tier1_clusters', [])) if existing_state else set()
-    prev_tier2 = existing_state.get('tier2_clusters', {}) if existing_state else {}
+    # Initialize cluster tree
+    if existing_state and 'cluster_tree' in existing_state:
+        tree = ClusterTree.from_dict(existing_state['cluster_tree'])
+    elif existing_state and 'tier1_clusters' in existing_state:
+        tree = ClusterTree.from_legacy_tiers(
+            existing_state.get('tier1_clusters', []),
+            existing_state.get('tier2_clusters', {})
+        )
+    else:
+        tree = ClusterTree()
 
-    discovered_tier1: set[str] = set(prev_tier1)
-    discovered_tier2: Dict[str, set[str]] = {k: set(v) for k, v in prev_tier2.items()}
+    discovered_tier1: set[str] = set(tree.get_children_names([]))
+    discovered_tier2: Dict[str, set[str]] = {t1: set(tree.get_children_names([t1])) for t1 in discovered_tier1}
 
     # Always ensure standard system clusters exist
     discovered_tier1.add("Review & Unassigned")
@@ -231,6 +239,7 @@ def scan_directory(
 
     items: Dict[str, Dict[str, Any]] = {}
     found_filenames: set[str] = set()
+    prev_items = existing_state.get('items', {}) if existing_state else {}
 
     for entry in root_path.rglob('*'):
         if entry.is_file() and entry.suffix.lower() in ALL_MEDIA_EXTENSIONS:
@@ -240,39 +249,34 @@ def scan_directory(
 
             found_filenames.add(filename)
             rel_path = entry.relative_to(root_path)
-            folder_parts = rel_path.parts[:-1]
+            raw_folder_parts = rel_path.parts[:-1]
 
-            # 1. Determine Level 1 (Tier 1) and Level 2 (Tier 2) from directory depth
-            if len(folder_parts) == 0:
-                # File is in the root directory
-                detected_t1 = "Review & Unassigned"
-                detected_t2 = None
+            # 1. Clean folder parts and handle system mappings
+            clean_parts: List[str] = []
+            for idx, p in enumerate(raw_folder_parts):
+                clean_p = p.strip()
+                if idx == 0 and clean_p.lower() in ('trash', 'to delete', 'deleted', 'garbage'):
+                    clean_p = "Trash / To Delete"
+                if clean_p:
+                    clean_parts.append(clean_p)
+
+            # Determine cluster path and review depth
+            if not clean_parts:
+                cluster_path = ["Review & Unassigned"]
+                reviewed_depth = 0
                 default_t1_reviewed = False
                 default_t2_reviewed = False
-            elif len(folder_parts) == 1:
-                # File is in a Level 1 folder (e.g., "Travel & Holidays/photo.jpg")
-                p0 = folder_parts[0].strip()
-                if p0.lower() in ('trash', 'to delete', 'deleted', 'garbage'):
-                    detected_t1 = "Trash / To Delete"
-                else:
-                    detected_t1 = p0
-                detected_t2 = None
-                default_t1_reviewed = (detected_t1 != "Review & Unassigned")
-                default_t2_reviewed = False
             else:
-                # File is in a Level 2 folder (e.g., "Travel & Holidays/Costa Brava/photo.jpg")
-                p0 = folder_parts[0].strip()
-                p1 = folder_parts[1].strip()
-                if p0.lower() in ('trash', 'to delete', 'deleted', 'garbage'):
-                    detected_t1 = "Trash / To Delete"
-                    detected_t2 = None
-                else:
-                    detected_t1 = p0
-                    detected_t2 = p1
-                default_t1_reviewed = True
-                default_t2_reviewed = bool(detected_t2)
+                cluster_path = clean_parts
+                reviewed_depth = len(cluster_path)
+                default_t1_reviewed = (cluster_path[0] != "Review & Unassigned")
+                default_t2_reviewed = (len(cluster_path) >= 2)
 
-            # Register discovered clusters
+            detected_t1 = cluster_path[0] if cluster_path else "Review & Unassigned"
+            detected_t2 = cluster_path[1] if len(cluster_path) > 1 else None
+
+            # Register in tree
+            tree.add_path(cluster_path)
             discovered_tier1.add(detected_t1)
             if detected_t1 not in discovered_tier2:
                 discovered_tier2[detected_t1] = set()
@@ -285,15 +289,26 @@ def scan_directory(
                 # Retain human curation decisions
                 item_dict = dict(prev)
                 item_dict['disk_path'] = str(entry)
-                # Ensure essential fields
-                if 'tier1_cluster' not in item_dict or not item_dict['tier1_cluster']:
-                    item_dict['tier1_cluster'] = detected_t1
-                if 'tier2_cluster' not in item_dict:
-                    item_dict['tier2_cluster'] = detected_t2
+                if 'cluster_path' not in item_dict or not item_dict['cluster_path']:
+                    t1 = item_dict.get('tier1_cluster') or detected_t1
+                    t2 = item_dict.get('tier2_cluster') or detected_t2
+                    item_dict['cluster_path'] = [t1, t2] if t2 else [t1]
+                if 'reviewed_depth' not in item_dict:
+                    if item_dict.get('tier2_reviewed'):
+                        item_dict['reviewed_depth'] = 2
+                    elif item_dict.get('tier1_reviewed'):
+                        item_dict['reviewed_depth'] = 1
+                    else:
+                        item_dict['reviewed_depth'] = 0
+
+                item_dict['tier1_cluster'] = item_dict['cluster_path'][0] if item_dict['cluster_path'] else detected_t1
+                item_dict['tier2_cluster'] = item_dict['cluster_path'][1] if len(item_dict['cluster_path']) > 1 else None
+                tree.add_path(item_dict['cluster_path'])
                 items[filename] = item_dict
             else:
                 # New item or full rescan: extract metadata
                 meta = extract_media_metadata(entry)
+                loc_or_event = " / ".join(cluster_path[1:]) if len(cluster_path) > 1 else (cluster_path[0] if cluster_path[0] != 'Review & Unassigned' else None)
                 item_dict = {
                     'filename': filename,
                     'disk_path': str(entry),
@@ -303,8 +318,10 @@ def scan_directory(
                     'gps': meta['gps'],
                     'taker_perspective': 'unknown',
                     'setting': None,
-                    'location_or_event': detected_t2 if detected_t2 else (detected_t1 if detected_t1 != 'Review & Unassigned' else None),
-                    'visual_description': f"Photo from {detected_t1}" + (f" - {detected_t2}" if detected_t2 else ""),
+                    'location_or_event': loc_or_event,
+                    'visual_description': f"Photo from {' / '.join(cluster_path)}",
+                    'cluster_path': cluster_path,
+                    'reviewed_depth': reviewed_depth,
                     'tier1_cluster': detected_t1,
                     'tier2_cluster': detected_t2,
                     'is_video': meta['is_video'],
@@ -314,12 +331,20 @@ def scan_directory(
                 }
                 # If prev existed, preserve manual overrides
                 if prev:
-                    for field in ['taker_perspective', 'setting', 'location_or_event', 'visual_description', 'tier1_cluster', 'tier2_cluster', 'tier1_reviewed', 'tier2_reviewed', 'status']:
+                    for field in ['taker_perspective', 'setting', 'location_or_event', 'visual_description', 'cluster_path', 'reviewed_depth', 'tier1_cluster', 'tier2_cluster', 'tier1_reviewed', 'tier2_reviewed', 'status', 'need_review']:
                         if field in prev:
                             item_dict[field] = prev[field]
+                    if prev.get('camera') and prev['camera'] != 'Unknown' and item_dict['camera'] == 'Unknown':
+                        item_dict['camera'] = prev['camera']
+                    if prev.get('date') and prev['date'] != 'Undated' and item_dict['date'] == 'Undated':
+                        item_dict['date'] = prev['date']
+                        item_dict['session_date'] = prev.get('session_date', prev['date'])
+                    if prev.get('gps') and not item_dict.get('gps'):
+                        item_dict['gps'] = prev['gps']
+                tree.add_path(item_dict['cluster_path'])
                 items[filename] = item_dict
 
-    # Convert sets to sorted lists for JSON serialization
+    # Convert sets to sorted lists for legacy JSON compatibility
     sorted_tier1 = sorted(
         list(discovered_tier1),
         key=lambda c: (c == 'Review & Unassigned', c == 'Trash / To Delete', c)
@@ -331,6 +356,7 @@ def scan_directory(
 
     state = {
         'root_dir': str(root_path),
+        'cluster_tree': tree.to_dict(),
         'tier1_clusters': sorted_tier1,
         'tier2_clusters': sorted_tier2,
         'items': items,
