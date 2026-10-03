@@ -2,14 +2,19 @@
 tests/test_state.py - Unit tests for LibraryManager with arbitrary N-level cluster tree and cascading actions.
 """
 
+import os
 import tempfile
 import unittest
 from pathlib import Path
-from studio.state import LibraryManager
+from unittest.mock import patch
+from studio.state import LibraryManager, is_ephemeral_or_temp_path, _load_config, _save_config
 
 
 class TestLibraryManager(unittest.TestCase):
     def setUp(self):
+        self.config_dir = tempfile.TemporaryDirectory()
+        os.environ["CURATION_CONFIG_DIR"] = self.config_dir.name
+
         self.temp_dir = tempfile.TemporaryDirectory()
         self.root = Path(self.temp_dir.name)
 
@@ -20,6 +25,8 @@ class TestLibraryManager(unittest.TestCase):
         (t_dir / "beach.jpg").touch()
 
     def tearDown(self):
+        os.environ.pop("CURATION_CONFIG_DIR", None)
+        self.config_dir.cleanup()
         self.temp_dir.cleanup()
 
     def test_open_folder_and_tree(self):
@@ -147,6 +154,38 @@ class TestLibraryManager(unittest.TestCase):
 
         it = mgr.state['items']["beach.jpg"]
         self.assertEqual(it['cluster_path'], ["Travel", "Espana", "Costa Brava"])
+
+    def test_is_ephemeral_or_temp_path(self):
+        self.assertTrue(is_ephemeral_or_temp_path("/tmp"))
+        self.assertTrue(is_ephemeral_or_temp_path("/private/tmp/sub"))
+        self.assertTrue(is_ephemeral_or_temp_path(tempfile.gettempdir()))
+        self.assertTrue(is_ephemeral_or_temp_path(self.root))
+        self.assertFalse(is_ephemeral_or_temp_path(Path.home() / "Pictures" / "Photos"))
+
+    def test_temp_folder_not_added_to_recents(self):
+        mgr = LibraryManager(self.root)
+        cfg = _load_config()
+        # self.root is in temporary directory, so it must NOT be in recent_libraries
+        self.assertNotIn(str(self.root.resolve()), cfg.get('recent_libraries', []))
+
+    @patch('studio.state.is_ephemeral_or_temp_path', return_value=False)
+    def test_clear_and_remove_recent_libraries(self, mock_is_temp):
+        mgr = LibraryManager()
+        dir1 = Path(self.config_dir.name) / "photos1"
+        dir2 = Path(self.config_dir.name) / "photos2"
+        dir1.mkdir()
+        dir2.mkdir()
+        fake1 = str(dir1.resolve())
+        fake2 = str(dir2.resolve())
+        _save_config({'recent_libraries': [fake1, fake2], 'last_opened': fake1})
+
+        # Remove one
+        remaining = mgr.remove_recent_library(fake1)
+        self.assertEqual(remaining, [fake2])
+
+        # Clear all
+        cleared = mgr.clear_recent_libraries()
+        self.assertEqual(cleared, [])
 
 
 if __name__ == '__main__':

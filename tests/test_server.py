@@ -21,6 +21,9 @@ from studio.server import create_handler
 
 class TestServerAPI(unittest.TestCase):
     def setUp(self):
+        self.config_dir = tempfile.TemporaryDirectory()
+        os.environ["CURATION_CONFIG_DIR"] = self.config_dir.name
+
         self.temp_dir = tempfile.TemporaryDirectory()
         self.root = Path(self.temp_dir.name).resolve()
 
@@ -41,6 +44,8 @@ class TestServerAPI(unittest.TestCase):
     def tearDown(self):
         self.server.shutdown()
         self.server.server_close()
+        os.environ.pop("CURATION_CONFIG_DIR", None)
+        self.config_dir.cleanup()
         self.temp_dir.cleanup()
 
     def post_json(self, path: str, data: dict):
@@ -261,6 +266,27 @@ class TestServerAPI(unittest.TestCase):
         # Non-existent thumbnail returns 404
         status404, _, _ = self.get_url('/thumb/does_not_exist.jpg')
         self.assertEqual(status404, 404)
+
+    def test_recents_clear_and_remove(self):
+        # Clear recents via API
+        status, clear_res = self.post_json('/api/recents/clear', {})
+        self.assertEqual(status, 200)
+        self.assertTrue(clear_res['ok'])
+        self.assertEqual(clear_res['recent_libraries'], [])
+
+        # Add mock entries to manager's isolated config
+        from studio.state import _save_config
+        with patch('studio.state.is_ephemeral_or_temp_path', return_value=False):
+            d1 = self.root / "sub1"
+            d2 = self.root / "sub2"
+            d1.mkdir()
+            d2.mkdir()
+            _save_config({'recent_libraries': [str(d1), str(d2)], 'last_opened': None})
+            # Remove an entry via API
+            status2, rem_res = self.post_json('/api/recents/remove', {'path': str(d1)})
+            self.assertEqual(status2, 200)
+            self.assertTrue(rem_res['ok'])
+            self.assertNotIn(str(d1), rem_res['recent_libraries'])
 
 
 if __name__ == '__main__':

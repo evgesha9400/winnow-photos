@@ -16,8 +16,41 @@ from studio.cluster_tree import ClusterTree, ClusterNode
 logger = logging.getLogger("curation_studio.state")
 LOCK = threading.RLock()
 
-CONFIG_DIR = Path.home() / ".photo_curation_studio"
-CONFIG_FILE = CONFIG_DIR / "config.json"
+def get_config_dir() -> Path:
+    env = os.environ.get("CURATION_CONFIG_DIR")
+    if env:
+        return Path(env).resolve()
+    return (Path.home() / ".photo_curation_studio").resolve()
+
+
+def get_config_file() -> Path:
+    env = os.environ.get("CURATION_CONFIG_FILE")
+    if env:
+        return Path(env).resolve()
+    return get_config_dir() / "config.json"
+
+
+CONFIG_DIR = get_config_dir()
+CONFIG_FILE = get_config_file()
+
+
+def is_ephemeral_or_temp_path(p: Path | str) -> bool:
+    """Check if path is inside system temporary or ephemeral directories."""
+    try:
+        rp = Path(p).resolve()
+        temp_candidates = [
+            Path(tempfile.gettempdir()).resolve(),
+            Path('/tmp').resolve(),
+            Path('/private/tmp').resolve(),
+            Path('/var/folders').resolve(),
+            Path('/private/var/folders').resolve(),
+        ]
+        for tc in temp_candidates:
+            if rp == tc or tc in rp.parents:
+                return True
+    except Exception:
+        pass
+    return False
 
 
 def atomic_write_json(file_path: str | Path, data: Any) -> None:
@@ -49,10 +82,35 @@ def atomic_write_json(file_path: str | Path, data: Any) -> None:
 
 
 def _load_config() -> Dict[str, Any]:
-    if CONFIG_FILE.exists():
+    cfg_file = get_config_file()
+    if cfg_file.exists():
         try:
-            with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
+            with open(cfg_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    raw_recents = data.get('recent_libraries', [])
+                    sanitized: List[str] = []
+                    seen = set()
+                    for r in raw_recents:
+                        try:
+                            rp = Path(r).resolve()
+                            if rp.is_dir() and not is_ephemeral_or_temp_path(rp):
+                                rp_str = str(rp)
+                                if rp_str not in seen:
+                                    seen.add(rp_str)
+                                    sanitized.append(rp_str)
+                        except Exception:
+                            continue
+                    data['recent_libraries'] = sanitized
+                    last = data.get('last_opened')
+                    if last:
+                        try:
+                            lp = Path(last).resolve()
+                            if not lp.is_dir() or is_ephemeral_or_temp_path(lp):
+                                data['last_opened'] = sanitized[0] if sanitized else None
+                        except Exception:
+                            data['last_opened'] = None
+                    return data
         except Exception:
             pass
     return {'recent_libraries': [], 'last_opened': None}
@@ -60,7 +118,8 @@ def _load_config() -> Dict[str, Any]:
 
 def _save_config(cfg: Dict[str, Any]) -> None:
     try:
-        atomic_write_json(CONFIG_FILE, cfg)
+        cfg_file = get_config_file()
+        atomic_write_json(cfg_file, cfg)
     except Exception as e:
         logger.warning(f"Could not save config: {e}")
 
@@ -179,17 +238,47 @@ class LibraryManager:
 
             self._refresh_file_cache()
 
-            cfg = _load_config()
-            recents = cfg.get('recent_libraries', [])
-            p_str = str(p)
-            if p_str in recents:
-                recents.remove(p_str)
-            recents.insert(0, p_str)
-            cfg['recent_libraries'] = recents[:10]
-            cfg['last_opened'] = p_str
-            _save_config(cfg)
+            if p.is_dir() and not is_ephemeral_or_temp_path(p):
+                cfg = _load_config()
+                recents = cfg.get('recent_libraries', [])
+                p_str = str(p.resolve())
+                if p_str in recents:
+                    recents.remove(p_str)
+                recents.insert(0, p_str)
+                cfg['recent_libraries'] = recents[:10]
+                cfg['last_opened'] = p_str
+                _save_config(cfg)
 
             return self.compute_payload()
+
+    def clear_recent_libraries(self) -> List[str]:
+        """Clear recent libraries list, optionally retaining the active library if valid."""
+        with LOCK:
+            cfg = _load_config()
+            if self.active_folder and not is_ephemeral_or_temp_path(self.active_folder):
+                cfg['recent_libraries'] = [str(self.active_folder.resolve())]
+                cfg['last_opened'] = str(self.active_folder.resolve())
+            else:
+                cfg['recent_libraries'] = []
+                cfg['last_opened'] = None
+            _save_config(cfg)
+            return cfg['recent_libraries']
+
+    def remove_recent_library(self, path_str: str) -> List[str]:
+        """Remove a single path from recent libraries."""
+        with LOCK:
+            cfg = _load_config()
+            recents = cfg.get('recent_libraries', [])
+            try:
+                target_str = str(Path(path_str).resolve())
+                recents = [r for r in recents if str(Path(r).resolve()) != target_str]
+            except Exception:
+                recents = [r for r in recents if r != path_str]
+            cfg['recent_libraries'] = recents
+            if cfg.get('last_opened') == path_str:
+                cfg['last_opened'] = recents[0] if recents else None
+            _save_config(cfg)
+            return recents
 
     def _refresh_file_cache(self):
         """Map filename -> disk_path for quick lookup."""

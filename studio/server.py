@@ -210,6 +210,17 @@ def create_handler(manager: LibraryManager):
                     self.send_json({'ok': False, 'error': str(e)}, status=400)
                 return
 
+            if path == '/api/recents/clear':
+                recents = manager.clear_recent_libraries()
+                self.send_json({'ok': True, 'recent_libraries': recents})
+                return
+
+            if path == '/api/recents/remove':
+                target_path = req.get('path', '').strip()
+                recents = manager.remove_recent_library(target_path)
+                self.send_json({'ok': True, 'recent_libraries': recents})
+                return
+
             # --- ITEM ACTIONS ---
             if path == '/api/items/confirm':
                 filenames = req.get('filenames', [])

@@ -1358,7 +1358,10 @@
       </div>
 
       <div id="recentFoldersGroup" style="margin-bottom: 14px; display: none;">
-        <label style="font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 4px;">Recent Libraries</label>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <label style="font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase;">Recent Libraries</label>
+          <button type="button" class="mini-icon-btn" style="color: var(--muted); font-size: 0.72rem; padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px;" onclick="clearRecentLibrariesList()" title="Clear recent libraries">Clear</button>
+        </div>
         <select class="batch-select" id="recentFoldersSelect" style="width: 100%;" onchange="handleSelectRecentFolder(this)">
           <option value="">Choose a recent library...</option>
         </select>
@@ -1589,7 +1592,11 @@
       if (DATA && DATA.recent_libraries && DATA.recent_libraries.length > 0) {
         recentGroup.style.display = 'block';
         recentSelect.innerHTML = '<option value="">Choose a recent library...</option>' +
-          DATA.recent_libraries.map(p => `<option value="${escapeHtml(p)}" ${p === DATA.active_folder ? 'selected' : ''}>${escapeHtml(p)}</option>`).join('');
+          DATA.recent_libraries.map(p => {
+            const shortPath = p.replace(/^\/Users\/[^\/]+/, '~');
+            return `<option value="${escapeHtml(p)}" ${p === DATA.active_folder ? 'selected' : ''}>${escapeHtml(shortPath)}</option>`;
+          }).join('') +
+          '<option value="__CLEAR__">── Clear Recent History ──</option>';
       } else {
         recentGroup.style.display = 'none';
       }
@@ -1602,10 +1609,27 @@
       document.getElementById('folderModalOverlay').style.display = 'none';
     }
 
-    function handleSelectRecentFolder(sel) {
-      if (sel.value) {
-        document.getElementById('folderPathInput').value = sel.value;
+    async function clearRecentLibrariesList() {
+      try {
+        const res = await fetch('/api/recents/clear', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok && DATA) {
+          DATA.recent_libraries = data.recent_libraries || [];
+          openFolderModal();
+          showToast('Recent libraries cleared.', 'info');
+        }
+      } catch (e) {
+        showToast('Failed to clear recents: ' + e.message, 'error');
       }
+    }
+
+    async function handleSelectRecentFolder(sel) {
+      if (!sel.value) return;
+      if (sel.value === '__CLEAR__') {
+        await clearRecentLibrariesList();
+        return;
+      }
+      document.getElementById('folderPathInput').value = sel.value;
     }
 
     async function submitOpenFolder() {
