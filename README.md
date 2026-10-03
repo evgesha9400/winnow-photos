@@ -1,6 +1,6 @@
 # Photo Curation Studio
 
-Two-tier universal media curation studio and library manager.
+Universal media curation studio and library manager.
 Designed for rapid sorting, burst deduplication, and hierarchical classification of local photo and video archives.
 
 ---
@@ -16,42 +16,51 @@ python3 main.py /path/to/my/photos
 # Or run with custom port
 python3 main.py ~/Pictures --port 8766
 
+# Or force clean rescan
+python3 main.py ~/Pictures --scan
+
 # Or launch studio and choose a folder from the web UI
 python3 main.py
 ```
 
-Open your browser to `http://localhost:8766`.
+Open your browser to `http://127.0.0.1:8766`.
 
 ---
 
 ## Key Features
 
-### 📁 Automatic Folder & Level Extraction
+### Recursive Folder and Level Extraction
 When opened on any folder:
-- **Depth 0 (Root files):** Placed in `Review & Unassigned` for inbox triage.
-- **Depth 1 (`Folder/file`):** Extracted as **Level 1 (Top-Level Cluster)**.
-- **Depth 2 (`Folder/Subfolder/file`):** Extracted as **Level 2 (Subcluster)**.
+- **Root Files:** Placed in `Review & Unassigned` for inbox triage.
+- **Arbitrary Depth Subfolders:** Extracted directly into an N-level recursive cluster tree (`ClusterTree`).
 - **EXIF Extraction:** Automatically detects capture dates, camera models, and GPS coordinates.
+- **Fast Thumbnails:** High-performance `/thumb/<filename>` route generates and caches 400x400 JPEG thumbnails on disk to keep scrolling responsive.
 
-### ⚡ Two-Tier Curation Workflow
-1. **Pass 1 (Top-Level Clusters):** High-level categorization (e.g. `Travel & Holidays`, `Outings, Dates & Events`, `Glamour`, `Lingerie & Boudoir`).
-2. **Pass 2 (Subclusters):** Deep categorization within each parent cluster (e.g. `Travel & Holidays` -> `Costa Brava`, `Edinburgh`, `Dubai`).
+### Arbitrary Depth Cluster Hierarchy
+- Organize photos into any number of nested subclusters (`Root > Vacation > 2024 > Italy > Rome`).
+- Move, rename, or delete clusters with recursive cascading updates across items and disk directories.
+- Reparenting cycle checks prevent nodes from moving into their own subtrees.
+- Sibling collision prevention rejects duplicate folder names.
+- Atomic state persistence guarantees zero data corruption on write interruptions.
 
-### 🎯 Three Work Views
-- **Sessions View:** Group photos taken on the same date/session. See shared metadata tags (`📍 Location`, `🏷️ Setting`, `👁️ Perspective`, `📷 Camera`) and sort entire bursts in one click.
-- **Grid View:** High-density gallery view. Use Shift-Select to select contiguous ranges of photos for bulk reassignment.
+### Three Work Views
+- **Sessions View:** Group photos taken on the same date or burst session. View shared metadata tags (`Location`, `Setting`, `Perspective`, `Camera`) and triage entire bursts in one click.
+- **Grid View:** High-density gallery view. Use Shift-Select to select ranges of photos for bulk reassignment.
 - **Focus Mode:** Single-photo deep review with rapid keyboard shortcuts.
 
-### ⌨️ Keyboard Shortcuts (Focus Mode)
+### Keyboard Shortcuts (Focus Mode)
 | Key | Action |
 |---|---|
-| `1` - `9` | Assign directly to cluster / subcluster `1` through `9` |
-| `Space` | Confirm current cluster assignment and advance |
+| `1` to `9` | Assign directly to visible cluster or subcluster `1` through `9` |
+| `C` or `Space` | Confirm current cluster assignment and advance to next photo |
 | `→` or `J` | Next photo |
 | `←` or `K` | Previous photo |
 | `D` or `Backspace` | Move to Trash |
+| `A` | Request Gemini AI cluster suggestions |
 | `Cmd+Z` / `Ctrl+Z` | Universal Undo |
-| `F` | Toggle Focus Mode |
+| `S`, `G`, `F` | Switch view mode (Sessions, Grid, Focus) |
+
+All keyboard hotkeys are guarded: typing inside text inputs, search boxes, or modals never triggers shortcuts.
 
 ---
 
@@ -61,13 +70,17 @@ When opened on any folder:
 photo-curation-studio/
 ├── main.py                     # CLI entrypoint
 ├── studio/
+│   ├── cluster_tree.py         # N-level recursive ClusterTree and ClusterNode model
 │   ├── scanner.py              # Directory hierarchy & EXIF parser
-│   ├── state.py                # LibraryManager & state persistence
-│   ├── server.py               # HTTP server & REST API
+│   ├── state.py                # LibraryManager & atomic state persistence
+│   ├── server.py               # HTTP server, REST API, & /thumb/ pipeline
 │   └── static/
 │       └── index.html          # Single-page web studio interface
 └── tests/
-    └── test_scanner.py         # Unit tests
+    ├── test_cluster_tree.py    # Recursive tree, cycle, and rename tests
+    ├── test_scanner.py         # Directory scan and rescan preservation tests
+    ├── test_server.py          # API endpoints, security, and thumbnail tests
+    └── test_state.py           # Atomic JSON and state management tests
 ```
 
 ---
@@ -77,5 +90,5 @@ photo-curation-studio/
 Run unit tests with standard Python `unittest`:
 
 ```bash
-python3 -m unittest tests/test_scanner.py
+python3 -m unittest discover tests -v
 ```
