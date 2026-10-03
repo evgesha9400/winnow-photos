@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photo Curation Studio — Two-Tier Library Manager</title>
+  <title>Photo Curation Studio</title>
   <style>
     :root {
       --bg: #090c10;
@@ -221,17 +221,44 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 12px;
+      height: 32px;
+      padding: 0 10px;
       border-radius: 6px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       cursor: pointer;
       color: var(--text);
       border: 1px solid transparent;
-      transition: all 0.1s;
+      white-space: nowrap;
+      overflow: hidden;
+      box-sizing: border-box;
+      flex-wrap: nowrap;
+      transition: background 0.1s;
     }
     .cluster-item:hover {
       background: var(--panel-hover);
       color: var(--text-bright);
+    }
+    .cluster-item-main {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex: 1 1 0;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .cluster-item-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .cluster-item-side {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      white-space: nowrap;
     }
     .cluster-item.active {
       background: #21262d;
@@ -255,6 +282,8 @@
       border-radius: 10px;
       color: var(--muted);
       font-family: monospace;
+      flex-shrink: 0;
+      white-space: nowrap;
     }
     .cluster-count.done {
       color: var(--green-bright);
@@ -271,80 +300,63 @@
     }
     .cluster-row-actions {
       display: none;
-      gap: 4px;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+      white-space: nowrap;
     }
     .cluster-item:hover .cluster-row-actions {
       display: flex;
     }
+    .cluster-item:hover .cluster-count {
+      display: none;
+    }
     .mini-icon-btn {
-      background: transparent;
-      border: none;
+      background: #21262d;
+      border: 1px solid var(--border);
       color: var(--muted);
       cursor: pointer;
       font-size: 0.75rem;
-      padding: 2px 4px;
-      border-radius: 3px;
+      padding: 2px 5px;
+      border-radius: 4px;
+      line-height: 1;
       transition: all 0.1s;
     }
-    .mini-icon-btn:hover { color: var(--text-bright); background: #30363d; }
-    .mini-icon-btn.btn-delete-cluster:hover { color: #f85149; background: rgba(218, 54, 51, 0.2); }
+    .mini-icon-btn:hover { color: var(--text-bright); background: #30363d; border-color: var(--accent); }
+    .mini-icon-btn.btn-delete-cluster:hover { color: #f85149; background: rgba(218, 54, 51, 0.2); border-color: rgba(218, 54, 51, 0.4); }
 
-    /* SUBCLUSTER ACCORDION TREE (PASS 2) */
-    .subcluster-tree {
-      margin-left: 14px;
-      padding-left: 10px;
-      border-left: 2px solid #30363d;
+    /* ARBITRARY N-LEVEL CLUSTER TREE */
+    .tree-node-wrapper {
+      display: flex;
+      flex-direction: column;
+    }
+    .tree-toggle {
+      width: 14px;
+      height: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.1s;
+    }
+    .tree-toggle:hover { color: var(--text-bright); background: #30363d; }
+    .tree-children {
       display: flex;
       flex-direction: column;
       gap: 2px;
-      margin-top: 3px;
-      margin-bottom: 6px;
+      border-left: 1px dashed #30363d;
+      margin-left: 14px;
+      padding-left: 2px;
     }
-    .subcluster-tree-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 5px 8px;
-      border-radius: 4px;
-      font-size: 0.78rem;
-      cursor: pointer;
-      color: var(--muted);
-      border: 1px solid transparent;
-      transition: all 0.1s;
-    }
-    .subcluster-tree-item:hover {
-      background: var(--panel-hover);
+    .cluster-item.branch-active {
+      border-left: 2px solid var(--purple);
       color: var(--text-bright);
     }
-    .subcluster-tree-item.active {
-      background: rgba(188, 140, 255, 0.18);
-      color: var(--purple);
-      border-color: rgba(188, 140, 255, 0.4);
-      font-weight: 600;
-    }
-    .subcluster-tree-item .count {
-      font-size: 0.7rem;
-      background: #0d1117;
-      padding: 1px 5px;
-      border-radius: 8px;
-      color: var(--muted);
-      font-family: monospace;
-    }
-    .subcluster-tree-item.active .count {
-      color: var(--purple);
-    }
-    .add-subcluster-link {
-      padding: 5px 8px;
-      font-size: 0.75rem;
-      color: var(--accent);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .add-subcluster-link:hover { text-decoration: underline; }
 
-    /* PARENT CLUSTER BANNER (VISIBLE IN PASS 2) */
+    /* BREADCRUMB & LEVEL CONTROL BAR */
     .parent-banner {
       background: #161b22;
       border-bottom: 1px solid var(--border);
@@ -353,31 +365,68 @@
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
+      gap: 16px;
     }
     .parent-banner-left {
       display: flex;
-      align-items: center;
-      gap: 12px;
+      flex-direction: column;
+      gap: 6px;
+      overflow: hidden;
     }
-    .parent-banner-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--text-bright);
+    .breadcrumbs-bar {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      font-size: 0.95rem;
+      flex-wrap: wrap;
     }
-    .parent-banner-title span.purple-badge {
-      background: rgba(188, 140, 255, 0.15);
-      color: var(--purple);
-      border: 1px solid rgba(188, 140, 255, 0.3);
-      padding: 2px 8px;
+    .breadcrumb-item {
+      color: var(--accent);
+      cursor: pointer;
+      font-weight: 600;
+      transition: color 0.1s;
+    }
+    .breadcrumb-item:hover { text-decoration: underline; color: #79c0ff; }
+    .breadcrumb-item.current {
+      color: var(--text-bright);
+      font-weight: 700;
+      cursor: default;
+      text-decoration: none;
+    }
+    .breadcrumb-sep {
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+    .subcluster-chips-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 2px 0;
+    }
+    .subcluster-chip {
+      background: #21262d;
+      border: 1px solid var(--border);
+      padding: 3px 10px;
       border-radius: 12px;
       font-size: 0.75rem;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.12s;
     }
-    .parent-banner-sub {
-      font-size: 0.75rem;
+    .subcluster-chip:hover {
+      border-color: var(--accent);
+      color: var(--text-bright);
+      background: #2d333b;
+    }
+    .subcluster-chip .chip-count {
+      font-size: 0.7rem;
       color: var(--muted);
+      font-family: monospace;
     }
 
     /* MAIN VIEW CONTAINER */
@@ -430,7 +479,7 @@
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 8px;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
       overflow: hidden;
       transition: opacity 0.2s, transform 0.2s;
     }
@@ -438,86 +487,148 @@
       border-left: 3px solid var(--green);
     }
     .session-header {
-      padding: 10px 16px;
-      background: #1c2128;
+      padding: 6px 14px;
+      height: 38px;
+      box-sizing: border-box;
+      background: #161b22;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
+      flex-wrap: nowrap;
+      gap: 12px;
+      user-select: none;
     }
-    .session-title {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--text-bright);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .session-sub-tag {
-      font-size: 0.75rem;
-      color: var(--purple);
-      background: rgba(188, 140, 255, 0.12);
-      border: 1px solid rgba(188, 140, 255, 0.3);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    .session-desc {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 2px;
-      max-width: 600px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .session-actions {
+    .session-header-left {
       display: flex;
       align-items: center;
       gap: 6px;
-      flex-wrap: wrap;
+      min-width: 0;
+      flex: 1 1 auto;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      scrollbar-width: none;
+    }
+    .session-header-left::-webkit-scrollbar {
+      display: none;
+    }
+    .session-select-pill {
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: var(--text-bright);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.12s;
+    }
+    .session-select-pill:hover {
+      background: #30363d;
+      border-color: var(--accent);
+    }
+    .session-date {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-bright);
+      flex-shrink: 0;
+    }
+    .session-count-tag {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-family: monospace;
+      flex-shrink: 0;
+    }
+    .session-meta-pill {
+      font-size: 0.7rem;
+      color: var(--muted);
+      background: #21262d;
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .session-meta-pill.clickable {
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .session-meta-pill.clickable:hover {
+      background: rgba(88, 166, 255, 0.18);
+      border-color: rgba(88, 166, 255, 0.5);
+      color: var(--accent);
+    }
+    .session-reviewed-pill {
+      font-size: 0.7rem;
+      color: var(--green-bright);
+      background: rgba(46, 160, 67, 0.15);
+      border: 1px solid rgba(46, 160, 67, 0.3);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .session-header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      white-space: nowrap;
     }
     .session-btn-confirm {
       background: rgba(35, 134, 54, 0.2);
       border: 1px solid var(--green);
       color: var(--green-bright);
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .session-btn-confirm:hover { background: var(--green); color: #fff; }
-
-    .session-btn-move {
-      background: #21262d;
-      border: 1px solid var(--border);
-      color: var(--text-bright);
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      cursor: pointer;
-    }
-    .session-btn-move:hover { background: #30363d; border-color: var(--accent); }
-
-    .session-btn-delete {
-      background: rgba(218, 54, 51, 0.15);
-      border: 1px solid var(--red);
-      color: #f85149;
-      padding: 4px 10px;
-      border-radius: 6px;
+      padding: 3px 10px;
+      border-radius: 5px;
       font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      transition: all 0.15s;
+      transition: all 0.12s;
+    }
+    .session-btn-confirm:hover { background: var(--green); color: #fff; }
+    .session-move-select {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      color: var(--text-bright);
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      max-width: 220px;
+    }
+    .session-move-select:hover { border-color: var(--accent); }
+    .session-btn-delete {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      padding: 3px 6px;
+      border-radius: 5px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.12s;
     }
     .session-btn-delete:hover {
-      background: var(--red);
-      color: #fff;
+      background: rgba(218, 54, 51, 0.2);
+      border-color: rgba(218, 54, 51, 0.4);
+      color: #f85149;
+    }
+    .pass-toggle-group {
+      display: none !important;
     }
 
     .btn-danger {
@@ -582,10 +693,10 @@
     }
 
     .session-thumbs {
-      padding: 12px;
+      padding: 10px 14px;
       display: flex;
-      gap: 10px;
-      overflow-x: auto;
+      flex-wrap: wrap;
+      gap: 8px;
       align-items: center;
     }
     .thumb-wrap {
@@ -598,6 +709,7 @@
       border: 1px solid var(--border);
       flex-shrink: 0;
       cursor: pointer;
+      user-select: none;
     }
     .thumb-wrap img, .thumb-wrap video {
       width: 100%;
@@ -635,6 +747,7 @@
       display: flex;
       flex-direction: column;
       position: relative;
+      user-select: none;
     }
     .grid-card.selected {
       border: 2px solid var(--accent);
@@ -912,17 +1025,18 @@
       border-radius: 4px;
       width: 22px;
       height: 22px;
-      display: none;
+      display: flex;
+      opacity: 0;
       pointer-events: none;
       align-items: center;
       justify-content: center;
       font-size: 0.75rem;
       cursor: pointer;
       z-index: 10;
-      transition: background 0.15s;
+      transition: opacity 0.15s, background 0.15s;
     }
     .thumb-wrap:hover .thumb-trash-btn {
-      display: flex;
+      opacity: 1;
       pointer-events: auto;
     }
     .thumb-trash-btn:hover {
@@ -1040,6 +1154,45 @@
       background: #21262d;
       color: #fff;
     }
+    .purple-badge {
+      font-size: 0.72rem;
+      font-family: monospace;
+      background: rgba(188,140,255,0.15);
+      color: var(--purple);
+      border: 1px solid rgba(188,140,255,0.35);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .ai-rec-desc {
+      font-size: 0.82rem;
+      color: var(--text);
+      line-height: 1.45;
+      margin-top: 4px;
+    }
+    .content-scroll, .cluster-list, .focus-right-panel, .modal-card {
+      scrollbar-width: thin;
+      scrollbar-color: #30363d transparent;
+    }
+    .content-scroll::-webkit-scrollbar,
+    .cluster-list::-webkit-scrollbar,
+    .focus-right-panel::-webkit-scrollbar,
+    .modal-card::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .content-scroll::-webkit-scrollbar-thumb,
+    .cluster-list::-webkit-scrollbar-thumb,
+    .focus-right-panel::-webkit-scrollbar-thumb,
+    .modal-card::-webkit-scrollbar-thumb {
+      background: #30363d;
+      border-radius: 4px;
+    }
+    .content-scroll::-webkit-scrollbar-track,
+    .cluster-list::-webkit-scrollbar-track,
+    .focus-right-panel::-webkit-scrollbar-track,
+    .modal-card::-webkit-scrollbar-track {
+      background: transparent;
+    }
   </style>
 </head>
 <body>
@@ -1105,23 +1258,17 @@
     <!-- MAIN WORKSPACE -->
     <main>
 
-      <!-- PARENT BANNER (ACTIVE IN PASS 2) -->
-      <div class="parent-banner" id="parentBanner" style="display:none;">
+      <!-- BREADCRUMB & LEVEL CONTROL BAR -->
+      <div class="parent-banner" id="parentBanner">
         <div class="parent-banner-left">
-          <div>
-            <div class="parent-banner-title">
-              📁 Parent Cluster: <span id="parentBannerTitle">Lingerie & Boudoir</span>
-              <span class="purple-badge" id="parentBannerCount">149 items</span>
-            </div>
-            <div class="parent-banner-sub" id="parentBannerSub">
-              Subclustering phase: sorting internal themes and events inside this parent cluster
-            </div>
-          </div>
+          <div class="breadcrumbs-bar" id="breadcrumbsBar"></div>
+          <div class="subcluster-chips-bar" id="subclusterChipsBar" style="display:none;"></div>
         </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <button class="sidebar-action-btn" style="padding:5px 10px; font-weight:600;" onclick="openRenameClusterModal(selectedTier1)">✎ Rename Parent</button>
-          <button class="sidebar-action-btn" style="padding:5px 10px; font-weight:600; color:var(--accent); border-color:rgba(88,166,255,0.4);" onclick="openGeminiSuggestModal('subcluster')" title="AI suggestions for subclusters in this parent">✨ AI Suggest Subclusters</button>
-          <button class="sidebar-action-btn" style="padding:5px 12px; font-weight:600; color:var(--purple); border-color:rgba(188,140,255,0.4);" onclick="openCreateSubclusterModal()">+ Add Subcluster</button>
+        <div style="display:flex; align-items:center; gap:8px;" id="breadcrumbActions">
+          <button class="sidebar-action-btn" id="btnBreadcrumbRename" onclick="handleBreadcrumbRename()">✎ Rename</button>
+          <button class="sidebar-action-btn" id="btnBreadcrumbDelete" style="color:#f85149;" onclick="handleBreadcrumbDelete()">🗑 Delete</button>
+          <button class="sidebar-action-btn" id="btnBreadcrumbAiSuggest" style="color:var(--accent); border-color:rgba(88,166,255,0.4);" onclick="handleBreadcrumbAiSuggest()">✨ AI</button>
+          <button class="sidebar-action-btn" id="btnBreadcrumbAddChild" style="color:var(--accent); border-color:rgba(88,166,255,0.4);" onclick="handleBreadcrumbAddChild()">+ New Cluster</button>
         </div>
       </div>
 
@@ -1132,6 +1279,7 @@
           <span id="batchActionLabel">Move selected to:</span>
           <select class="batch-select" id="batchTargetSelect"></select>
           <button class="btn-primary" style="padding:4px 10px; font-size:0.8rem;" onclick="executeBatchMove()">Move</button>
+          <button class="session-btn-confirm" style="padding:4px 10px; font-size:0.8rem;" onclick="executeBatchConfirm()">✓ Confirm</button>
           <span id="batchParentGroup" style="display:none; align-items:center; gap:6px;">
             <span style="color:var(--muted); font-size:0.8rem;">or to Parent:</span>
             <select class="batch-select" id="batchParentTargetSelect"></select>
@@ -1188,15 +1336,9 @@
             <div class="hotkey-btn-grid" id="focusHotkeyButtons"></div>
           </div>
 
-          <div id="focusSubclusterAssignBox" style="display:none;">
-            <div class="panel-section-title">Assign Subcluster</div>
-            <select class="batch-select" id="focusSubclusterSelect" style="width:100%;" onchange="assignFocusSubcluster(this.value)"></select>
-
-            <div style="margin-top:12px;">
-              <div class="panel-section-title">Move to Different Parent Cluster</div>
-              <select class="batch-select" id="focusParentSelect" style="width:100%;" onchange="assignFocusCluster(this.value)">
-              </select>
-            </div>
+          <div id="focusSubclusterAssignBox" style="margin-top:14px;">
+            <div class="panel-section-title">Move Photo to Any Cluster</div>
+            <select class="batch-select" id="focusUniversalSelect" style="width:100%;" onchange="handleFocusUniversalSelect(this)"></select>
           </div>
         </div>
       </div>
@@ -1319,7 +1461,7 @@
           Custom Prompt / Instructions (Optional):
         </label>
         <div style="display:flex; gap:8px;">
-          <input type="text" id="aiSuggestPromptInput" class="modal-input" placeholder="e.g. 'focus on luxury locations', 'use short 2-word labels', 'artistic style'..." onkeydown="if(event.key==='Enter') generateAiSuggestions();">
+          <input type="text" id="aiSuggestPromptInput" class="modal-input" placeholder="e.g. 'focus on luxury locations', 'use short 2-word labels', 'artistic style'...">
           <button class="btn-primary" id="btnRunAiSuggest" onclick="generateAiSuggestions()" style="white-space:nowrap; display:flex; align-items:center; gap:6px;">
             <span>✨ Suggest</span>
           </button>
@@ -1343,6 +1485,8 @@
 
   <script>
     let DATA = null;
+    let activeClusterPath = []; // [] = Root / All Photos
+    let expandedPaths = new Set();
     let currentPass = 1; // 1 = Top-Level, 2 = Subclusters
     let currentTriage = 'pending'; // 'pending' (inbox zero), 'reviewed', 'all'
     let currentView = 'sessions'; // 'sessions', 'grid', 'focus'
@@ -1355,9 +1499,66 @@
     let undoStack = [];
     let currentAiSuggestContext = null;
 
+    function isPathEqual(p1, p2) {
+      if (!p1 || !p2 || p1.length !== p2.length) return false;
+      for (let i = 0; i < p1.length; i++) {
+        if (p1[i].toLowerCase() !== p2[i].toLowerCase()) return false;
+      }
+      return true;
+    }
+
+    function isPathPrefix(prefix, full) {
+      if (!prefix || !full || prefix.length > full.length) return false;
+      for (let i = 0; i < prefix.length; i++) {
+        if (prefix[i].toLowerCase() !== full[i].toLowerCase()) return false;
+      }
+      return true;
+    }
+
+    function navigateToPath(path) {
+      activeClusterPath = [...path];
+      for (let i = 1; i <= activeClusterPath.length; i++) {
+        expandedPaths.add(activeClusterPath.slice(0, i).join(' / '));
+      }
+      if (activeClusterPath.length === 0) {
+        selectedTier1 = 'ALL';
+        selectedTier2 = 'ALL';
+        currentPass = 1;
+      } else if (activeClusterPath.length === 1) {
+        selectedTier1 = activeClusterPath[0];
+        selectedTier2 = 'ALL';
+        currentPass = 1;
+      } else {
+        selectedTier1 = activeClusterPath[0];
+        selectedTier2 = activeClusterPath.slice(1).join(' / ');
+        currentPass = 2;
+      }
+      renderAll();
+    }
+
+    function getAllClusterPaths(node = (DATA && DATA.cluster_tree), current = []) {
+      if (!node) return [];
+      const res = [];
+      if (current.length > 0) res.push([...current]);
+      if (node.children) {
+        node.children.forEach(child => {
+          res.push(...getAllClusterPaths(child, [...current, child.name]));
+        });
+      }
+      return res;
+    }
+
+    function relinkSessionItems() {
+      if (!DATA || !DATA.sessions || !DATA.items) return;
+      DATA.sessions.forEach(s => {
+        s.items = s.items.map(it => DATA.items[it.filename] || it);
+      });
+    }
+
     async function init() {
       const res = await fetch('/api/state');
       DATA = await res.json();
+      relinkSessionItems();
       updateHeaderLibrary();
       renderAll();
     }
@@ -1411,7 +1612,7 @@
       const input = document.getElementById('folderPathInput');
       const pathVal = input.value.trim();
       if (!pathVal) {
-        alert('Please enter a valid directory path.');
+        showToast('Please enter a valid directory path.', 'error');
         return;
       }
 
@@ -1430,12 +1631,13 @@
         });
         const data = await res.json();
         if (!data.ok) {
-          alert('Error opening folder: ' + (data.error || 'Unknown error'));
+          showToast('Error opening folder: ' + (data.error || 'Unknown error'), 'error');
           submitBtn.disabled = false;
           submitBtn.innerText = originalBtnText;
           return;
         }
         DATA = data.payload;
+        relinkSessionItems();
         selectedTier1 = 'ALL';
         selectedTier2 = 'ALL';
         selectedFilenames.clear();
@@ -1444,21 +1646,23 @@
         renderAll();
         showToast(`✓ Opened library: ${DATA.total_items} items across ${DATA.tier1_clusters.length} clusters`);
       } catch (err) {
-        alert('Network error opening folder: ' + err.message);
+        showToast('Network error opening folder: ' + err.message, 'error');
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = originalBtnText;
       }
     }
 
-    function showToast(msg) {
+    function showToast(msg, type = 'info') {
       let toast = document.getElementById('appToast');
       if (!toast) {
         toast = document.createElement('div');
         toast.id = 'appToast';
-        toast.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#21262d; border:1px solid var(--accent); color:var(--text-bright); padding:8px 18px; border-radius:20px; font-size:0.85rem; font-weight:600; box-shadow:0 4px 14px rgba(0,0,0,0.6); z-index:9999; transition:opacity 0.2s; pointer-events:none;';
         document.body.appendChild(toast);
       }
+      const borderColor = type === 'error' ? 'var(--red)' : (type === 'success' ? 'var(--green-bright)' : 'var(--accent)');
+      const textColor = type === 'error' ? '#ff7b72' : 'var(--text-bright)';
+      toast.style.cssText = `position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#21262d; border:1px solid ${borderColor}; color:${textColor}; padding:8px 18px; border-radius:20px; font-size:0.85rem; font-weight:600; box-shadow:0 4px 14px rgba(0,0,0,0.6); z-index:9999; transition:opacity 0.2s; pointer-events:none;`;
       toast.innerText = msg;
       toast.style.opacity = '1';
       toast.style.display = 'block';
@@ -1480,6 +1684,8 @@
           tier2_cluster: it.tier2_cluster,
           tier1_reviewed: it.tier1_reviewed,
           tier2_reviewed: it.tier2_reviewed,
+          cluster_path: it.cluster_path ? [...it.cluster_path] : (it.tier2_cluster ? [it.tier1_cluster, it.tier2_cluster] : [it.tier1_cluster || 'Review & Unassigned']),
+          reviewed_depth: it.reviewed_depth !== undefined ? it.reviewed_depth : (it.tier2_reviewed ? 2 : (it.tier1_reviewed ? 1 : 0)),
           status: it.status
         } : null;
       }).filter(Boolean);
@@ -1519,16 +1725,24 @@
 
       lastAction.snapshots.forEach(s => {
         if (DATA.items[s.filename]) {
-          Object.assign(DATA.items[s.filename], s);
+          Object.assign(DATA.items[s.filename], s, {
+            cluster_path: s.cluster_path ? [...s.cluster_path] : [s.tier1_cluster || 'Review & Unassigned']
+          });
         }
       });
 
+      relinkSessionItems();
       refreshLocalCounts();
       renderAll();
       showToast(`↩ Undid: ${lastAction.description}`);
     }
 
     function renderAll() {
+      const sessCont = document.getElementById('sessionsViewContainer');
+      const gridCont = document.getElementById('gridViewContainer');
+      const sessScroll = sessCont ? sessCont.scrollTop : 0;
+      const gridScroll = gridCont ? gridCont.scrollTop : 0;
+
       refreshLocalCounts();
       const reviewedCount = currentPass === 1 ? DATA.total_tier1_reviewed : DATA.total_tier2_reviewed;
       document.getElementById('libraryCountBadge').innerText = `${reviewedCount} / ${DATA.total_items} Verified`;
@@ -1539,23 +1753,33 @@
       if (currentView === 'sessions') renderSessions();
       else if (currentView === 'grid') renderGrid();
       else if (currentView === 'focus') renderFocus();
+
+      if (sessCont) sessCont.scrollTop = sessScroll;
+      if (gridCont) gridCont.scrollTop = gridScroll;
     }
 
-    /* PASS SWITCHER */
+    /* PASS SWITCHER / DEPTH NAVIGATOR */
     function setPassMode(pass) {
       currentPass = pass;
       document.getElementById('btnPass1').className = `pass-btn ${pass === 1 ? 'active' : ''}`;
       document.getElementById('btnPass2').className = `pass-btn purple ${pass === 2 ? 'active' : ''}`;
 
-      if (pass === 2) {
-        if (selectedTier1 === 'ALL' || !DATA.tier1_clusters.includes(selectedTier1)) {
-          selectedTier1 = DATA.tier1_clusters.find(c => c !== 'Review & Unassigned') || DATA.tier1_clusters[0];
+      if (pass === 1) {
+        if (activeClusterPath.length > 1) {
+          navigateToPath([activeClusterPath[0]]);
+        } else {
+          renderAll();
         }
-        selectedTier2 = 'ALL';
       } else {
-        selectedTier2 = 'ALL';
+        if (activeClusterPath.length <= 1) {
+          const t1 = (activeClusterPath[0] && activeClusterPath[0] !== 'Review & Unassigned' && activeClusterPath[0] !== 'Trash / To Delete')
+            ? activeClusterPath[0]
+            : (DATA.tier1_clusters.find(c => c !== 'Review & Unassigned' && c !== 'Trash / To Delete') || 'Review & Unassigned');
+          navigateToPath([t1]);
+        } else {
+          renderAll();
+        }
       }
-      renderAll();
     }
 
     /* TRIAGE FILTER SWITCHER (INBOX ZERO MODE) */
@@ -1583,145 +1807,258 @@
       if (v === 'focus') renderFocus();
     }
 
-    /* PARENT BANNER IN PASS 2 */
+    /* BREADCRUMB & LEVEL CONTROL BAR */
     function renderParentBanner() {
       const banner = document.getElementById('parentBanner');
-      if (currentPass === 2) {
-        banner.style.display = 'flex';
-        document.getElementById('parentBannerTitle').innerText = selectedTier1;
-        const total = DATA.counts[selectedTier1] || 0;
-        const reviewed = DATA.tier2_reviewed_counts[selectedTier1] || 0;
-        document.getElementById('parentBannerCount').innerText = `${reviewed} / ${total} Subclustered`;
-        document.getElementById('parentBannerSub').innerText = `Sorting subclusters for "${selectedTier1}". Items disappear as you assign them in Inbox mode.`;
+      const bcContainer = document.getElementById('breadcrumbsBar');
+      const chipsContainer = document.getElementById('subclusterChipsBar');
+      const btnRename = document.getElementById('btnBreadcrumbRename');
+      const btnDelete = document.getElementById('btnBreadcrumbDelete');
+
+      banner.style.display = 'flex';
+      bcContainer.innerHTML = '';
+      chipsContainer.innerHTML = '';
+
+      const isRoot = activeClusterPath.length === 0;
+
+      // Breadcrumbs
+      let crumbsHtml = `<span class="breadcrumb-item ${isRoot ? 'current' : ''}" onclick="navigateToPath([])">🏠 All Photos</span>`;
+      for (let i = 0; i < activeClusterPath.length; i++) {
+        const part = activeClusterPath[i];
+        const isLast = (i === activeClusterPath.length - 1);
+        const subPath = activeClusterPath.slice(0, i + 1);
+        crumbsHtml += `<span class="breadcrumb-sep">/</span>`;
+        if (isLast) {
+          crumbsHtml += `<span class="breadcrumb-item current">${escapeHtml(part)}</span>`;
+        } else {
+          crumbsHtml += `<span class="breadcrumb-item" onclick="navigateToPath(${JSON.stringify(subPath).replace(/"/g, '&quot;')})">${escapeHtml(part)}</span>`;
+        }
+      }
+
+      const activePathKey = activeClusterPath.join(' / ');
+      const stats = (DATA.node_stats && DATA.node_stats[activePathKey]) || { total: DATA.total_items, reviewed: DATA.total_fully_reviewed || DATA.total_tier1_reviewed || 0 };
+      crumbsHtml += `<span class="purple-badge" style="margin-left:8px;">${stats.reviewed} / ${stats.total} Verified</span>`;
+      bcContainer.innerHTML = crumbsHtml;
+
+      const isSystem = activeClusterPath.length === 1 && (activeClusterPath[0] === 'Review & Unassigned' || activeClusterPath[0] === 'Trash / To Delete');
+      if (isRoot || isSystem) {
+        btnRename.style.display = 'none';
+        btnDelete.style.display = 'none';
       } else {
-        banner.style.display = 'none';
+        btnRename.style.display = 'inline-flex';
+        btnDelete.style.display = 'inline-flex';
+      }
+
+      const btnAddChild = document.getElementById('btnBreadcrumbAddChild');
+      if (btnAddChild) {
+        btnAddChild.innerText = isRoot ? '+ New Cluster' : '+ Subcluster';
+        btnAddChild.title = isRoot ? 'Create top-level cluster' : `Create subcluster in "${activeClusterPath.join(' / ')}"`;
+        btnAddChild.style.color = isRoot ? 'var(--accent)' : 'var(--purple)';
+        btnAddChild.style.borderColor = isRoot ? 'rgba(88,166,255,0.4)' : 'rgba(188,140,255,0.4)';
+      }
+      const btnAiSuggest = document.getElementById('btnBreadcrumbAiSuggest');
+      if (btnAiSuggest) {
+        btnAiSuggest.title = isRoot ? 'AI suggestions for top-level clusters' : `AI suggestions for subclusters in "${activeClusterPath.join(' / ')}"`;
+      }
+
+      // Find active node in tree
+      let currNode = DATA.cluster_tree;
+      for (const part of activeClusterPath) {
+        if (currNode && currNode.children) {
+          currNode = currNode.children.find(c => c.name.toLowerCase() === part.toLowerCase());
+        }
+      }
+
+      if (currNode && currNode.children && currNode.children.length > 0) {
+        chipsContainer.style.display = 'flex';
+        const labelText = isRoot ? 'Clusters:' : 'Subclusters:';
+        let chipsHtml = `<span style="font-size:0.75rem; color:var(--muted); font-weight:600; margin-right:4px;">${labelText}</span>`;
+        currNode.children.forEach(child => {
+          const childPath = [...activeClusterPath, child.name];
+          const childKey = childPath.join(' / ');
+          const cStats = (DATA.node_stats && DATA.node_stats[childKey]) || { total: 0, reviewed: 0 };
+          const prefix = isRoot ? '📁 ' : '↳ ';
+          chipsHtml += `
+            <div class="subcluster-chip" onclick="navigateToPath(${JSON.stringify(childPath).replace(/"/g, '&quot;')})">
+              <span>${prefix}${escapeHtml(child.name)}</span>
+              <span class="chip-count">(${cStats.reviewed}/${cStats.total})</span>
+            </div>
+          `;
+        });
+        const newBtnText = isRoot ? '+ New Cluster' : '+ New Subcluster';
+        chipsHtml += `<button class="mini-icon-btn" style="border:1px solid var(--border); padding:3px 8px; border-radius:12px; color:var(--accent);" onclick="openCreateClusterModal(${JSON.stringify(activeClusterPath).replace(/"/g, '&quot;')})">${newBtnText}</button>`;
+        chipsContainer.innerHTML = chipsHtml;
+      } else {
+        chipsContainer.style.display = 'none';
       }
     }
 
-    /* SIDEBAR RENDERING WITH PROGRESS & ACCORDION TREE */
+    function handleBreadcrumbRename() {
+      if (activeClusterPath.length > 0) openRenameClusterModal(activeClusterPath);
+    }
+
+    function handleBreadcrumbDelete() {
+      if (activeClusterPath.length > 0) openDeleteClusterModal(activeClusterPath);
+    }
+
+    function handleBreadcrumbAddChild() {
+      openCreateClusterModal(activeClusterPath);
+    }
+
+    function handleBreadcrumbAiSuggest() {
+      if (activeClusterPath.length === 0) {
+        openGeminiSuggestModal('top_level');
+      } else {
+        openGeminiSuggestModal('subcluster');
+      }
+    }
+
+    /* SIDEBAR RENDERING: RECURSIVE N-LEVEL CLUSTER TREE */
     function renderSidebar() {
       const list = document.getElementById('clusterList');
       list.innerHTML = '';
 
-      document.getElementById('sidebarTitle').innerText = currentPass === 1 ? 'Top-Level Clusters' : 'Parent Clusters';
+      document.getElementById('sidebarTitle').innerText = 'Cluster Tree';
 
-      if (currentPass === 1) {
-        const allItem = document.createElement('div');
-        allItem.className = `cluster-item ${selectedTier1 === 'ALL' ? 'active' : ''}`;
-        allItem.innerHTML = `<span>All Photos</span><span class="cluster-count">${DATA.total_tier1_reviewed} / ${DATA.total_items}</span>`;
-        allItem.onclick = () => { selectedTier1 = 'ALL'; selectedTier2 = 'ALL'; renderAll(); };
-        list.appendChild(allItem);
+      // 1. "All Photos" item at top
+      const allItem = document.createElement('div');
+      const isAllActive = activeClusterPath.length === 0;
+      allItem.className = `cluster-item ${isAllActive ? 'active' : ''}`;
+      const totalReviewed = DATA.total_fully_reviewed || DATA.total_tier1_reviewed || 0;
+      allItem.innerHTML = `
+        <div class="cluster-item-main">
+          <span>🏠</span>
+          <span class="cluster-item-name" style="font-weight:600;">All Photos</span>
+        </div>
+        <div class="cluster-item-side">
+          <span class="cluster-count">${totalReviewed} / ${DATA.total_items}</span>
+        </div>
+      `;
+      allItem.onclick = () => navigateToPath([]);
+      list.appendChild(allItem);
+
+      if (!DATA.cluster_tree || !DATA.cluster_tree.children) return;
+
+      const regularChildren = [];
+      let unassignedNode = null;
+      let trashNode = null;
+
+      DATA.cluster_tree.children.forEach(c => {
+        if (c.name === 'Review & Unassigned') unassignedNode = c;
+        else if (c.name === 'Trash / To Delete') trashNode = c;
+        else regularChildren.push(c);
+      });
+
+      regularChildren.sort((a, b) => a.name.localeCompare(b.name));
+
+      regularChildren.forEach(node => {
+        const el = renderTreeNodeElement(node, 0, []);
+        list.appendChild(el);
+      });
+
+      if (unassignedNode) {
+        const el = renderTreeNodeElement(unassignedNode, 0, [], true, false);
+        list.appendChild(el);
+      }
+      if (trashNode) {
+        const el = renderTreeNodeElement(trashNode, 0, [], false, true);
+        list.appendChild(el);
+      }
+    }
+
+    function renderTreeNodeElement(node, depth, parentPath, isUnassigned = false, isTrash = false) {
+      const nodePath = [...parentPath, node.name];
+      const pathKey = nodePath.join(' / ');
+      const hasChildren = node.children && node.children.length > 0;
+      const isCurrentActive = isPathEqual(activeClusterPath, nodePath);
+      const isBranchActive = isPathPrefix(nodePath, activeClusterPath);
+
+      if (isBranchActive && hasChildren) {
+        expandedPaths.add(pathKey);
+      }
+      const isExpanded = expandedPaths.has(pathKey);
+
+      const stats = (DATA.node_stats && DATA.node_stats[pathKey]) || { total: 0, reviewed: 0, direct: 0 };
+      const isDone = !isTrash && !isUnassigned && stats.total > 0 && stats.reviewed === stats.total;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'tree-node-wrapper';
+
+      const row = document.createElement('div');
+      row.className = `cluster-item ${isCurrentActive ? 'active' : (isBranchActive ? 'branch-active' : '')} ${isUnassigned ? 'unassigned' : ''} ${isTrash ? 'trash-cluster' : ''}`;
+      row.style.paddingLeft = `${8 + depth * 14}px`;
+
+      const arrowHtml = hasChildren
+        ? `<span class="tree-toggle" onclick="event.stopPropagation(); toggleNodeExpanded('${escapeJs(pathKey)}')">${isExpanded ? '▼' : '▶'}</span>`
+        : `<span style="display:inline-block; width:14px; margin-right:2px;"></span>`;
+
+      const icon = isTrash ? '🗑 ' : (isUnassigned ? '⚠️ ' : (hasChildren ? (isExpanded ? '📂 ' : '📁 ') : '• '));
+
+      const actionsHtml = (!isTrash && !isUnassigned) ? `
+        <div class="cluster-row-actions">
+          <button class="mini-icon-btn" title="Add Subcluster" onclick="event.stopPropagation(); openCreateClusterModal(${JSON.stringify(nodePath).replace(/"/g, '&quot;')})">+</button>
+          <button class="mini-icon-btn" title="Rename" onclick="event.stopPropagation(); openRenameClusterModal(${JSON.stringify(nodePath).replace(/"/g, '&quot;')})">✎</button>
+          <button class="mini-icon-btn btn-delete-cluster" title="Delete" onclick="event.stopPropagation(); openDeleteClusterModal(${JSON.stringify(nodePath).replace(/"/g, '&quot;')})">🗑</button>
+        </div>
+      ` : '';
+
+      const countBadgeHtml = isTrash
+        ? `<span class="cluster-count">${stats.total}</span>`
+        : `<span class="cluster-count ${isDone ? 'done' : ''}">${isDone ? '✓ ' : ''}${stats.reviewed} / ${stats.total}</span>`;
+
+      row.innerHTML = `
+        <div class="cluster-item-main">
+          ${arrowHtml}
+          <span>${icon}</span>
+          <span class="cluster-item-name" title="${escapeHtml(node.name)}">${escapeHtml(node.name)}</span>
+        </div>
+        <div class="cluster-item-side">
+          ${actionsHtml}
+          ${countBadgeHtml}
+        </div>
+      `;
+
+      row.onclick = () => navigateToPath(nodePath);
+      wrapper.appendChild(row);
+
+      if (hasChildren && isExpanded) {
+        const childrenContainer = document.createElement('div');
+        childrenContainer.className = 'tree-children';
+        node.children.forEach(child => {
+          childrenContainer.appendChild(renderTreeNodeElement(child, depth + 1, nodePath));
+        });
+        wrapper.appendChild(childrenContainer);
       }
 
-      // Group into regular, unassigned, and trash
-      const regularClusters = DATA.tier1_clusters.filter(c => c !== 'Review & Unassigned' && c !== 'Trash / To Delete');
-      const orderedClusters = [...regularClusters];
-      if (DATA.tier1_clusters.includes('Review & Unassigned')) orderedClusters.push('Review & Unassigned');
-      if (DATA.tier1_clusters.includes('Trash / To Delete')) orderedClusters.push('Trash / To Delete');
+      return wrapper;
+    }
 
-      orderedClusters.forEach(c => {
-        const itemWrapper = document.createElement('div');
-        const item = document.createElement('div');
-        const isUnassigned = c === 'Review & Unassigned';
-        const isTrash = c === 'Trash / To Delete';
-        const isParentActive = selectedTier1 === c;
-        const totalCount = DATA.counts[c] || 0;
-        const reviewedCount = currentPass === 1 ? (DATA.tier1_reviewed_counts[c] || 0) : (DATA.tier2_reviewed_counts[c] || 0);
-        const isDone = !isTrash && !isUnassigned && totalCount > 0 && reviewedCount === totalCount;
-
-        item.className = `cluster-item ${isParentActive ? (currentPass === 2 ? 'active pass2-active' : 'active') : ''} ${isUnassigned ? 'unassigned' : ''} ${isTrash ? 'trash-cluster' : ''}`;
-        
-        const iconPrefix = isTrash ? '🗑 ' : (isUnassigned ? '⚠️ ' : (currentPass === 2 ? (isParentActive ? '📂 ' : '📁 ') : ''));
-        const actionsHtml = (!isTrash && !isUnassigned) ? `
-          <div class="cluster-row-actions">
-            <button class="mini-icon-btn" title="Rename Cluster" onclick="event.stopPropagation(); openRenameClusterModal('${c}')">✎</button>
-            <button class="mini-icon-btn btn-delete-cluster" title="Delete Cluster" onclick="event.stopPropagation(); openDeleteClusterModal(1, '${c}')">🗑</button>
-          </div>
-        ` : '';
-
-        item.innerHTML = `
-          <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
-            <span>${iconPrefix}</span>
-            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${c}</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:6px;">
-            ${actionsHtml}
-            <span class="cluster-count ${isDone ? 'done' : ''}">${isDone ? '✓ ' : ''}${isTrash ? totalCount : `${reviewedCount}/${totalCount}`}</span>
-          </div>
-        `;
-
-        item.onclick = () => {
-          selectedTier1 = c;
-          selectedTier2 = 'ALL';
-          renderAll();
-        };
-        itemWrapper.appendChild(item);
-
-        if (currentPass === 2 && isParentActive && !isTrash && !isUnassigned) {
-          const tree = document.createElement('div');
-          tree.className = 'subcluster-tree';
-
-          const allSub = document.createElement('div');
-          allSub.className = `subcluster-tree-item ${selectedTier2 === 'ALL' ? 'active' : ''}`;
-          allSub.innerHTML = `<span>All in ${c}</span><span class="count">${DATA.counts[c] || 0}</span>`;
-          allSub.onclick = (e) => { e.stopPropagation(); selectedTier2 = 'ALL'; renderAll(); };
-          tree.appendChild(allSub);
-
-          const unassignedCount = Object.values(DATA.items).filter(it => it.tier1_cluster === c && !it.tier2_cluster).length;
-          if (unassignedCount > 0) {
-            const noSub = document.createElement('div');
-            noSub.className = `subcluster-tree-item ${selectedTier2 === '__NONE__' ? 'active' : ''}`;
-            noSub.innerHTML = `<span style="color:var(--orange);">⚠️ Needs Subcluster</span><span class="count">${unassignedCount}</span>`;
-            noSub.onclick = (e) => { e.stopPropagation(); selectedTier2 = '__NONE__'; renderAll(); };
-            tree.appendChild(noSub);
-          }
-
-          const subcats = DATA.tier2_clusters[c] || [];
-          subcats.forEach(sub => {
-            const count = Object.values(DATA.items).filter(it => it.tier1_cluster === c && it.tier2_cluster === sub).length;
-            const subItem = document.createElement('div');
-            subItem.className = `subcluster-tree-item ${selectedTier2 === sub ? 'active' : ''}`;
-            subItem.innerHTML = `
-              <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">↳ ${sub}</span>
-              <div style="display:flex; align-items:center; gap:4px;">
-                <span class="count">${count}</span>
-                <button class="mini-icon-btn" title="Rename Subcluster" onclick="event.stopPropagation(); openRenameSubclusterModal('${sub}', '${c}')">✎</button>
-                <button class="mini-icon-btn btn-delete-cluster" title="Delete Subcluster" onclick="event.stopPropagation(); openDeleteClusterModal(2, '${sub}', '${c}')">🗑</button>
-              </div>
-            `;
-            subItem.onclick = (e) => {
-              e.stopPropagation();
-              selectedTier2 = sub;
-              renderAll();
-            };
-            tree.appendChild(subItem);
-          });
-
-          const addLink = document.createElement('div');
-          addLink.className = 'add-subcluster-link';
-          addLink.innerHTML = `<span>+ Add Subcluster</span>`;
-          addLink.onclick = (e) => { e.stopPropagation(); openCreateSubclusterModal(); };
-          tree.appendChild(addLink);
-
-          itemWrapper.appendChild(tree);
-        }
-
-        list.appendChild(itemWrapper);
-      });
+    function toggleNodeExpanded(pathKey) {
+      if (expandedPaths.has(pathKey)) {
+        expandedPaths.delete(pathKey);
+      } else {
+        expandedPaths.add(pathKey);
+      }
+      renderSidebar();
     }
 
     /* FILTER HELPER FOR TRIAGE INBOX */
     function filterItemByTriage(it) {
-      const isReviewed = currentPass === 1 ? it.tier1_reviewed : it.tier2_reviewed;
+      const reqDepth = Math.max(activeClusterPath.length, 1);
+      const isReviewed = (it.reviewed_depth || 0) >= reqDepth;
       if (currentTriage === 'pending') return !isReviewed;
       if (currentTriage === 'reviewed') return isReviewed;
       return true; // 'all'
     }
 
     function filterSessionByTriage(s) {
-      const isReviewed = currentPass === 1 ? s.tier1_reviewed : s.tier2_reviewed;
-      if (currentTriage === 'pending') return !isReviewed;
-      if (currentTriage === 'reviewed') return isReviewed;
+      const reqDepth = Math.max(activeClusterPath.length, 1);
+      if (currentTriage === 'pending') {
+        return s.items.some(it => (it.reviewed_depth || 0) < reqDepth);
+      }
+      if (currentTriage === 'reviewed') {
+        return s.items.length > 0 && s.items.every(it => (it.reviewed_depth || 0) >= reqDepth);
+      }
       return true; // 'all'
     }
 
@@ -1770,34 +2107,9 @@
       return map[st] || st.replace(/_/g, ' ');
     }
 
-    function useTagAsClusterName(tagText, parentCluster) {
-      if (currentPass === 2) {
-        document.getElementById('modalTitle').innerText = `Create Subcluster inside "${parentCluster || selectedTier1}"`;
-        document.getElementById('modalInput').value = tagText;
-        document.getElementById('modalOverlay').style.display = 'flex';
-        document.getElementById('modalInput').focus();
-        modalCallback = async (val) => {
-          await fetch('/api/cluster/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ level: 2, name: val, parent_tier1: parentCluster || selectedTier1 })
-          });
-          init();
-        };
-      } else {
-        document.getElementById('modalTitle').innerText = 'Create Top-Level Cluster';
-        document.getElementById('modalInput').value = tagText;
-        document.getElementById('modalOverlay').style.display = 'flex';
-        document.getElementById('modalInput').focus();
-        modalCallback = async (val) => {
-          await fetch('/api/cluster/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ level: 1, name: val })
-          });
-          init();
-        };
-      }
+    function useTagAsClusterName(tagText, parentPath) {
+      const p = parentPath || activeClusterPath || [];
+      openCreateClusterModal(p, null, tagText);
     }
 
     /* SELECTION & SHIFT-SELECT STATE */
@@ -1805,11 +2117,13 @@
     let lastGridSelect = { index: -1, filename: null };
 
     function getVisibleGridItems() {
+      if (!DATA || !DATA.items) return [];
       let items = Object.values(DATA.items);
-      if (selectedTier1 !== 'ALL') items = items.filter(it => it.tier1_cluster === selectedTier1);
-      if (currentPass === 2) {
-        if (selectedTier2 === '__NONE__') items = items.filter(it => !it.tier2_cluster);
-        else if (selectedTier2 !== 'ALL') items = items.filter(it => it.tier2_cluster === selectedTier2);
+      if (activeClusterPath.length > 0) {
+        items = items.filter(it => {
+          const cp = it.cluster_path || (it.tier2_cluster ? [it.tier1_cluster, it.tier2_cluster] : [it.tier1_cluster || 'Review & Unassigned']);
+          return isPathPrefix(activeClusterPath, cp);
+        });
       }
       return items.filter(filterItemByTriage);
     }
@@ -1818,9 +2132,14 @@
       const session = DATA.sessions.find(s => s.session_key === sessionKey);
       if (!session) return;
 
-      if (e && e.shiftKey && lastSessionSelect.sessionKey === sessionKey && lastSessionSelect.index !== -1) {
-        const start = Math.min(lastSessionSelect.index, index);
-        const end = Math.max(lastSessionSelect.index, index);
+      const currIdx = session.items.findIndex(it => it.filename === filename);
+      const anchorIdx = (lastSessionSelect.sessionKey === sessionKey && lastSessionSelect.filename)
+        ? session.items.findIndex(it => it.filename === lastSessionSelect.filename)
+        : -1;
+
+      if (e && e.shiftKey && anchorIdx !== -1 && currIdx !== -1) {
+        const start = Math.min(anchorIdx, currIdx);
+        const end = Math.max(anchorIdx, currIdx);
         for (let i = start; i <= end; i++) {
           if (session.items[i]) {
             selectedFilenames.add(session.items[i].filename);
@@ -1833,15 +2152,18 @@
           selectedFilenames.add(filename);
         }
       }
-      lastSessionSelect = { sessionKey, index, filename };
+      lastSessionSelect = { sessionKey, index: currIdx !== -1 ? currIdx : index, filename };
       syncSelectionDOM();
     }
 
     function handleGridThumbSelect(filename, index, e) {
       const visibleItems = getVisibleGridItems();
-      if (e && e.shiftKey && lastGridSelect.index !== -1 && lastGridSelect.index < visibleItems.length) {
-        const start = Math.min(lastGridSelect.index, index);
-        const end = Math.max(lastGridSelect.index, index);
+      const currIdx = visibleItems.findIndex(it => it.filename === filename);
+      const anchorIdx = lastGridSelect.filename ? visibleItems.findIndex(it => it.filename === lastGridSelect.filename) : -1;
+
+      if (e && e.shiftKey && anchorIdx !== -1 && currIdx !== -1) {
+        const start = Math.min(anchorIdx, currIdx);
+        const end = Math.max(anchorIdx, currIdx);
         for (let i = start; i <= end; i++) {
           if (visibleItems[i]) {
             selectedFilenames.add(visibleItems[i].filename);
@@ -1854,7 +2176,7 @@
           selectedFilenames.add(filename);
         }
       }
-      lastGridSelect = { index, filename };
+      lastGridSelect = { index: currIdx !== -1 ? currIdx : index, filename };
       syncSelectionDOM();
     }
 
@@ -1883,16 +2205,12 @@
       const container = document.getElementById('sessionsList');
       container.innerHTML = '';
 
-      let sessions = DATA.sessions;
-      if (selectedTier1 !== 'ALL') {
-        sessions = sessions.filter(s => s.tier1_cluster === selectedTier1);
-      }
-      if (currentPass === 2) {
-        if (selectedTier2 === '__NONE__') {
-          sessions = sessions.filter(s => !s.tier2_cluster);
-        } else if (selectedTier2 !== 'ALL') {
-          sessions = sessions.filter(s => s.tier2_cluster === selectedTier2);
-        }
+      let sessions = DATA.sessions || [];
+      if (activeClusterPath.length > 0) {
+        sessions = sessions.filter(s => {
+          const cp = s.cluster_path || (s.tier2_cluster ? [s.tier1_cluster, s.tier2_cluster] : [s.tier1_cluster || 'Review & Unassigned']);
+          return isPathPrefix(activeClusterPath, cp);
+        });
       }
 
       sessions = sessions.filter(filterSessionByTriage);
@@ -1914,78 +2232,89 @@
 
       sessions.forEach(s => {
         const card = document.createElement('div');
-        const isReviewed = currentPass === 1 ? s.tier1_reviewed : s.tier2_reviewed;
+        const reqDepth = Math.max(activeClusterPath.length, 1);
+        const isReviewed = s.items.length > 0 && s.items.every(it => (it.reviewed_depth || 0) >= reqDepth);
         card.className = `session-card ${isReviewed ? 'reviewed-card' : ''}`;
         card.id = `card-${s.session_key.replace(/[^a-zA-Z0-9]/g, '_')}`;
 
-        const isTrashSession = s.tier1_cluster === 'Trash / To Delete';
-        const subTagHtml = s.tier2_cluster ? `<span class="session-sub-tag">↳ ${s.tier2_cluster}</span>` : '';
-        const quickTargetClusters = DATA.tier1_clusters.filter(c => c !== s.tier1_cluster && c !== 'Trash / To Delete' && c !== 'Review & Unassigned').slice(0, 3);
-        const subcats = DATA.tier2_clusters[s.tier1_cluster] || [];
+        const cp = s.cluster_path || (s.tier2_cluster ? [s.tier1_cluster, s.tier2_cluster] : [s.tier1_cluster || 'Review & Unassigned']);
+        const isTrashSession = cp[0] === 'Trash / To Delete';
 
-        // Action Buttons: Confirm & Keep vs Move vs Delete
+        // Action Buttons: Confirm vs Move All dropdown vs Trash
         const confirmBtnHtml = (!isTrashSession)
-          ? (currentPass === 1
-              ? `<button class="session-btn-confirm" onclick="confirmSession('${s.session_key}')">✓ Confirm ${s.tier1_cluster}</button>`
-              : (s.tier2_cluster ? `<button class="session-btn-confirm" onclick="confirmSessionSub('${s.session_key}')">✓ Confirm ↳ ${s.tier2_cluster}</button>` : ''))
+          ? `<button class="session-btn-confirm" onclick="confirmSession('${s.session_key}')">${isReviewed ? '✓ Confirmed' : '✓ Confirm'}</button>`
           : '';
 
         const deleteBtnHtml = (!isTrashSession)
-          ? `<button class="session-btn-delete" onclick="deleteSession('${s.session_key}')" title="Move session to Trash">🗑 Trash</button>`
+          ? `<button class="session-btn-delete" onclick="deleteSession('${s.session_key}')" title="Move session to Trash">🗑</button>`
           : '';
 
-        const quickButtonsHtml = currentPass === 1
-          ? quickTargetClusters.map(tc => `<button class="session-btn-move" onclick="moveSession('${s.session_key}', '${tc}')">${isTrashSession ? 'Restore to ' : 'Move to '}${tc}</button>`).join('')
-          : subcats.slice(0, 4).map(sc => `<button class="session-btn-move" style="border-color:rgba(188,140,255,0.4); color:var(--purple);" onclick="moveSessionSub('${s.session_key}', '${sc}')">${sc}</button>`).join('');
+        // Full paths dropdown
+        const allPaths = getAllClusterPaths();
+        const newOptionLabel = activeClusterPath.length === 0 ? '+ Create New Cluster...' : '+ Create New Subcluster...';
+        const selectOptionsHtml = allPaths.map(p => {
+          const indent = '&nbsp;&nbsp;'.repeat(Math.max(0, p.length - 1));
+          const prefix = p.length > 1 ? '↳ ' : '📁 ';
+          return `<option value="${JSON.stringify(p).replace(/"/g, '&quot;')}">${indent}${prefix}${escapeHtml(p[p.length - 1])}</option>`;
+        }).join('') + `<option value="__NEW__">${newOptionLabel}</option>`;
 
-        const selectOptionsHtml = currentPass === 1
-          ? DATA.tier1_clusters.map(c => `<option value="${c}">${c}</option>`).join('')
-          : subcats.map(c => `<option value="${c}">${c}</option>`).join('') + `<option value="__NEW__">+ Create New Subcluster...</option>`;
+        // Common session metadata tags (dynamically collected from items and session)
+        const sLocs = (s.locations && s.locations.length > 0) ? s.locations : Array.from(new Set(s.items.map(it => (it.location_or_event || '').trim()).filter(l => l && !['none','unknown','null',''].includes(l.toLowerCase()))));
+        const sSettings = (s.settings && s.settings.length > 0) ? s.settings : Array.from(new Set(s.items.map(it => (it.setting || '').trim()).filter(st => st && !['none','unknown','null',''].includes(st.toLowerCase()))));
+        const sPersps = (s.perspectives && s.perspectives.length > 0) ? s.perspectives : Array.from(new Set(s.items.map(it => (it.taker_perspective || '').trim()).filter(p => p && !['none','unknown','null',''].includes(p.toLowerCase()))));
+        const sCameras = (s.cameras && s.cameras.length > 0) ? s.cameras : Array.from(new Set(s.items.map(it => (it.camera || '').trim()).filter(c => c && !['none','unknown','null','unknown / whatsapp',''].includes(c.toLowerCase()))));
+        const sGps = (s.gps_tags && s.gps_tags.length > 0) ? s.gps_tags : Array.from(new Set(s.items.map(it => (it.gps && it.gps.formatted ? String(it.gps.formatted).trim() : '')).filter(Boolean)));
 
-        // Pass 2 Move to Parent dropdown
-        const moveParentHtml = (currentPass === 2 && !isTrashSession) ? `
-          <select class="batch-select" style="border-color:rgba(88,166,255,0.4);" onchange="handleSessionMoveParent('${s.session_key}', this)">
-            <option value="">📁 Move to Different Parent...</option>
-            ${DATA.tier1_clusters.filter(c => c !== s.tier1_cluster && c !== 'Trash / To Delete').map(c => `<option value="${c}">${c}</option>`).join('')}
-          </select>
-        ` : '';
+        let metaPillsHtml = '';
 
-        // Common Metadata Tags
-        const locChips = (s.locations || []).map(loc => `<span class="session-meta-tag loc-tag" title="Click to use as cluster name" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(loc)}', '${escapeJs(s.tier1_cluster)}')">📍 ${escapeHtml(loc)}</span>`).join('');
-        const setChips = (s.settings || []).map(st => `<span class="session-meta-tag set-tag" title="Click to use as cluster name" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(formatSettingTag(st))}', '${escapeJs(s.tier1_cluster)}')">🏷️ ${escapeHtml(formatSettingTag(st))}</span>`).join('');
-        const perspChips = (s.perspectives || []).map(p => `<span class="session-meta-tag persp-tag" title="Perspective">👁️ ${escapeHtml(formatPerspectiveTag(p))}</span>`).join('');
-        const camChips = (s.cameras || []).map(c => `<span class="session-meta-tag cam-tag" title="Camera">📷 ${escapeHtml(c)}</span>`).join('');
+        // Cameras
+        sCameras.forEach(cam => {
+          metaPillsHtml += `<span class="session-meta-pill clickable" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(cam)}')" title="Camera: ${escapeHtml(cam)} (Click to create cluster from tag)">📷 ${escapeHtml(cam)}</span>`;
+        });
 
-        const metaTagsHtml = (locChips || setChips || perspChips || camChips) ? `
-          <div class="session-meta-tags">
-            ${locChips}
-            ${setChips}
-            ${perspChips}
-            ${camChips}
-          </div>
-        ` : '';
+        // Locations
+        sLocs.forEach(loc => {
+          metaPillsHtml += `<span class="session-meta-pill clickable" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(loc)}')" title="Location: ${escapeHtml(loc)} (Click to create cluster from tag)">📍 ${escapeHtml(loc)}</span>`;
+        });
+
+        // Settings
+        sSettings.forEach(st => {
+          const label = formatSettingTag(st);
+          metaPillsHtml += `<span class="session-meta-pill clickable" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(label)}')" title="Setting: ${escapeHtml(label)} (Click to create cluster from tag)">🏷️ ${escapeHtml(label)}</span>`;
+        });
+
+        // Perspectives
+        sPersps.filter(p => p !== 'unknown').forEach(tp => {
+          const label = formatPerspectiveTag(tp);
+          metaPillsHtml += `<span class="session-meta-pill clickable" onclick="event.stopPropagation(); useTagAsClusterName('${escapeJs(label)}')" title="Perspective: ${escapeHtml(label)} (Click to create cluster from tag)">👤 ${escapeHtml(label)}</span>`;
+        });
+
+        // GPS Coordinates
+        sGps.forEach(gps => {
+          metaPillsHtml += `<span class="session-meta-pill" title="GPS: ${escapeHtml(gps)}">🌐 ${escapeHtml(gps)}</span>`;
+        });
+
+        // If at root "All Photos", show compact cluster indicator
+        const clusterTagHtml = (activeClusterPath.length === 0 && cp.length > 0)
+          ? `<span class="session-meta-pill" style="color:var(--accent); border-color:rgba(88,166,255,0.3);" title="Cluster: ${escapeHtml(cp.join(' / '))}">📁 ${escapeHtml(cp[cp.length - 1])}</span>`
+          : '';
 
         card.innerHTML = `
           <div class="session-header">
-            <div>
-              <div class="session-title">
-                <button class="sidebar-action-btn" style="padding:2px 8px; font-size:0.75rem; font-weight:600;" onclick="toggleSelectSession('${s.session_key}')" title="Select / deselect all photos in this session">☑ Select (${s.items.length})</button>
-                <span>📅 ${s.session_date}</span>
-                <span class="badge" style="font-size:0.7rem; padding:1px 6px;">${s.tier1_cluster}</span>
-                ${subTagHtml}
-                ${isReviewed ? `<span style="font-size:0.7rem; color:var(--green-bright); background:rgba(46,160,67,0.15); padding:1px 6px; border-radius:4px;">✓ Reviewed</span>` : ''}
-              </div>
-              <div class="session-desc">${escapeHtml(s.sample_description)}</div>
-              ${metaTagsHtml}
+            <div class="session-header-left">
+              <button class="session-select-pill" onclick="toggleSelectSession('${s.session_key}')" title="Select / deselect all photos in this session">☑ ${s.items.length}</button>
+              <span class="session-date">📅 ${s.session_date}</span>
+              <span class="session-count-tag">${s.items.length} photo${s.items.length === 1 ? '' : 's'}</span>
+              ${clusterTagHtml}
+              ${isReviewed ? `<span class="session-reviewed-pill">✓ Reviewed</span>` : ''}
+              ${metaPillsHtml}
             </div>
-            <div class="session-actions">
+            <div class="session-header-right">
               ${confirmBtnHtml}
-              ${quickButtonsHtml}
-              <select class="batch-select" onchange="handleSessionSelectChange('${s.session_key}', this)">
-                <option value="">${isTrashSession ? 'Restore All to...' : (currentPass === 1 ? 'Move All to Cluster...' : 'Assign All to Subcluster...')}</option>
+              <select class="session-move-select" onchange="handleSessionSelectPath('${s.session_key}', this)">
+                <option value="">${isTrashSession ? 'Restore All to... ▾' : 'Move All to... ▾'}</option>
                 ${selectOptionsHtml}
               </select>
-              ${moveParentHtml}
               ${deleteBtnHtml}
             </div>
           </div>
@@ -2000,12 +2329,13 @@
           wrap.setAttribute('data-session', s.session_key);
           wrap.setAttribute('data-idx', idx);
           const isVid = it.is_video;
+          const itCp = it.cluster_path || [it.tier1_cluster || 'Review & Unassigned'];
           wrap.innerHTML = `
             <input type="checkbox" class="thumb-select-check" ${selectedFilenames.has(it.filename) ? 'checked' : ''} onclick="event.stopPropagation(); handleSessionThumbSelect('${s.session_key}', '${it.filename}', ${idx}, event)">
-            ${it.tier1_cluster !== 'Trash / To Delete' ? `<button class="thumb-trash-btn" onclick="event.stopPropagation(); deleteSingleItem('${it.filename}')" title="Move to Trash">🗑</button>` : ''}
+            ${itCp[0] !== 'Trash / To Delete' ? `<button class="thumb-trash-btn" onclick="event.stopPropagation(); deleteSingleItem('${it.filename}')" title="Move to Trash">🗑</button>` : ''}
             ${isVid
               ? `<video src="/image/${encodeURIComponent(it.filename)}" preload="metadata" muted playsinline></video><span class="thumb-badge">▶</span>`
-              : `<img src="/image/${encodeURIComponent(it.filename)}" loading="lazy">`
+              : `<img src="/thumb/${encodeURIComponent(it.filename)}" onerror="this.onerror=null;this.src='/image/' + encodeURIComponent('${escapeJs(it.filename)}');" loading="lazy">`
             }
           `;
 
@@ -2041,25 +2371,116 @@
       syncSelectionDOM();
     }
 
-    function handleSessionSelectChange(sessionKey, selectElem) {
+    function handleSessionSelectPath(sessionKey, selectElem) {
       const val = selectElem.value;
       if (!val) return;
       if (val === '__NEW__') {
-        openCreateSubclusterModal((newSub) => {
-          moveSessionSub(sessionKey, newSub);
+        openCreateClusterModal(activeClusterPath, (newPath) => {
+          moveSessionToPath(sessionKey, newPath);
         });
       } else {
-        if (currentPass === 1) moveSession(sessionKey, val);
-        else moveSessionSub(sessionKey, val);
+        const targetPath = JSON.parse(val);
+        moveSessionToPath(sessionKey, targetPath);
       }
       selectElem.value = '';
     }
 
-    function handleSessionMoveParent(sessionKey, selectElem) {
-      const targetParent = selectElem.value;
-      if (!targetParent) return;
-      moveSession(sessionKey, targetParent);
-      selectElem.value = '';
+    async function moveSessionToPath(sessionKey, targetPath) {
+      const session = DATA.sessions.find(s => s.session_key === sessionKey);
+      if (!session) return;
+      const fns = session.items.map(it => it.filename);
+      const targetName = targetPath.join(' / ');
+      recordUndoAction(`Move session to "${targetName}"`, fns);
+
+      fns.forEach(fn => {
+        if (DATA.items[fn]) {
+          DATA.items[fn].cluster_path = [...targetPath];
+          DATA.items[fn].tier1_cluster = targetPath[0] || 'Review & Unassigned';
+          DATA.items[fn].tier2_cluster = targetPath[1] || null;
+          DATA.items[fn].reviewed_depth = targetPath.length;
+          DATA.items[fn].tier1_reviewed = true;
+          DATA.items[fn].tier2_reviewed = (targetPath.length >= 2);
+        }
+      });
+
+      session.items.forEach(it => {
+        it.cluster_path = [...targetPath];
+        it.tier1_cluster = targetPath[0] || 'Review & Unassigned';
+        it.tier2_cluster = targetPath.length > 1 ? targetPath.slice(1).join(' / ') : null;
+        it.reviewed_depth = targetPath.length;
+        it.tier1_reviewed = true;
+        it.tier2_reviewed = (targetPath.length >= 2);
+      });
+
+      session.cluster_path = [...targetPath];
+      session.tier1_cluster = targetPath[0] || 'Review & Unassigned';
+      session.tier2_cluster = targetPath.length > 1 ? targetPath.slice(1).join(' / ') : null;
+      session.tier1_reviewed = true;
+      session.tier2_reviewed = (targetPath.length >= 2);
+      session.session_key = `${session.session_date}___${targetPath.join(' / ')}`;
+
+      refreshLocalCounts();
+      renderAll();
+      showToast(`Moved session to "${targetName}"`);
+
+      await fetch('/api/items/move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filenames: fns, target_path: targetPath })
+      });
+    }
+
+    async function confirmSession(sessionKey) {
+      const session = DATA.sessions.find(s => s.session_key === sessionKey);
+      if (!session) return;
+      const fns = session.items.map(it => it.filename);
+      const targetDepth = Math.max(activeClusterPath.length, 1);
+      recordUndoAction(`Confirm session (${fns.length} photos)`, fns);
+
+      fns.forEach(fn => {
+        if (DATA.items[fn]) {
+          DATA.items[fn].reviewed_depth = Math.max(DATA.items[fn].reviewed_depth || 0, targetDepth);
+          if (targetDepth >= 1) DATA.items[fn].tier1_reviewed = true;
+          if (targetDepth >= 2) DATA.items[fn].tier2_reviewed = true;
+          DATA.items[fn].status = 'confirmed';
+          DATA.items[fn].need_review = false;
+        }
+      });
+      session.items.forEach(it => {
+        it.reviewed_depth = Math.max(it.reviewed_depth || 0, targetDepth);
+        if (targetDepth >= 1) it.tier1_reviewed = true;
+        if (targetDepth >= 2) it.tier2_reviewed = true;
+        it.status = 'confirmed';
+        it.need_review = false;
+      });
+      session.tier1_reviewed = session.items.every(it => (it.reviewed_depth || 0) >= 1);
+      session.tier2_reviewed = session.items.every(it => (it.reviewed_depth || 0) >= 2);
+      session.fully_reviewed = session.items.every(it => (it.reviewed_depth || 0) >= (it.cluster_path || []).length);
+
+      refreshLocalCounts();
+      renderSidebar();
+      renderParentBanner();
+      showToast(`✓ Confirmed session (${fns.length} photos)`);
+
+      if (currentTriage === 'pending') {
+        const cardElem = document.getElementById(`card-${sessionKey.replace(/[^a-zA-Z0-9]/g, '_')}`);
+        if (cardElem) {
+          cardElem.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+          cardElem.style.opacity = '0';
+          cardElem.style.transform = 'translateY(-10px)';
+          setTimeout(() => renderAll(), 200);
+        } else {
+          renderAll();
+        }
+      } else {
+        renderAll();
+      }
+
+      await fetch('/api/items/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filenames: fns, depth: targetDepth })
+      });
     }
 
     /* GRID VIEW RENDERING */
@@ -2073,26 +2494,29 @@
 
       items.forEach((it, idx) => {
         const card = document.createElement('div');
-        const isReviewed = currentPass === 1 ? it.tier1_reviewed : it.tier2_reviewed;
+        const reqDepth = Math.max(activeClusterPath.length, 1);
+        const isReviewed = (it.reviewed_depth || 0) >= reqDepth;
         card.className = `grid-card ${selectedFilenames.has(it.filename) ? 'selected' : ''} ${isReviewed ? 'reviewed-card' : ''}`;
         card.setAttribute('data-fn', it.filename);
         card.setAttribute('data-idx', idx);
         const isVid = it.is_video;
 
+        const cp = it.cluster_path || (it.tier2_cluster ? [it.tier1_cluster, it.tier2_cluster] : [it.tier1_cluster || 'Review & Unassigned']);
+        const pathBadges = cp.map((part, pIdx) => `<span class="tag-chip" style="${pIdx > 0 ? 'color:var(--purple); border-color:rgba(188,140,255,0.4);' : ''}">${pIdx > 0 ? '↳ ' : ''}${escapeHtml(part)}</span>`).join('');
+
         card.innerHTML = `
           <div class="grid-media-wrap">
             <input type="checkbox" class="grid-select-check" ${selectedFilenames.has(it.filename) ? 'checked' : ''} onclick="event.stopPropagation(); handleGridThumbSelect('${it.filename}', ${idx}, event)">
-            ${it.tier1_cluster !== 'Trash / To Delete' ? `<button class="grid-trash-btn" onclick="event.stopPropagation(); deleteSingleItem('${it.filename}')" title="Move to Trash">🗑</button>` : ''}
+            ${cp[0] !== 'Trash / To Delete' ? `<button class="grid-trash-btn" onclick="event.stopPropagation(); deleteSingleItem('${it.filename}')" title="Move to Trash">🗑</button>` : ''}
             ${isVid
               ? `<video src="/image/${encodeURIComponent(it.filename)}" preload="metadata" muted playsinline></video>`
-              : `<img src="/image/${encodeURIComponent(it.filename)}" loading="lazy">`
+              : `<img src="/thumb/${encodeURIComponent(it.filename)}" onerror="this.onerror=null;this.src='/image/' + encodeURIComponent('${escapeJs(it.filename)}');" loading="lazy">`
             }
           </div>
           <div class="grid-card-meta">
             <div class="grid-card-name">${escapeHtml(it.filename)}</div>
             <div class="grid-card-tags">
-              <span class="tag-chip">${escapeHtml(it.tier1_cluster)}</span>
-              ${it.tier2_cluster ? `<span class="tag-chip" style="color:var(--purple); border-color:rgba(188,140,255,0.4);">↳ ${escapeHtml(it.tier2_cluster)}</span>` : ''}
+              ${pathBadges}
               ${isReviewed ? `<span class="tag-chip" style="color:var(--green-bright);">✓</span>` : ''}
             </div>
           </div>
@@ -2114,18 +2538,14 @@
     }
 
     /* FOCUS VIEW RENDERING */
+    let currentFocusChoices = [];
+
     function renderFocus() {
-      let items = Object.values(DATA.items);
-      if (selectedTier1 !== 'ALL') items = items.filter(it => it.tier1_cluster === selectedTier1);
-      if (currentPass === 2) {
-        if (selectedTier2 === '__NONE__') items = items.filter(it => !it.tier2_cluster);
-        else if (selectedTier2 !== 'ALL') items = items.filter(it => it.tier2_cluster === selectedTier2);
-      }
-      items = items.filter(filterItemByTriage);
-      flatFocusList = items;
+      flatFocusList = getVisibleGridItems();
 
       if (flatFocusList.length === 0) {
         document.getElementById('focusMediaBox').innerHTML = `<div style="color:var(--muted); text-align:center;">No pending photos in focus view.</div>`;
+        document.getElementById('focusHotkeyButtons').innerHTML = '';
         return;
       }
       if (currentFocusIndex >= flatFocusList.length) currentFocusIndex = 0;
@@ -2138,50 +2558,94 @@
         : `<img src="/image/${encodeURIComponent(it.filename)}" style="max-width:95%; max-height:95%; object-fit:contain;">`;
 
       document.getElementById('focusFn').innerText = `${it.filename} (${currentFocusIndex + 1} of ${flatFocusList.length})`;
-      document.getElementById('focusDateCam').innerText = `${it.date || 'Unknown'} • ${it.camera || 'Unknown'}`;
-      document.getElementById('focusSetting').innerText = `${it.location_or_event || it.setting || '-'} • ${it.taker_perspective || '-'}`;
+      const gpsStr = it.gps && it.gps.formatted ? ` • 🌐 ${it.gps.formatted}` : '';
+      document.getElementById('focusDateCam').innerText = `${it.date || 'Unknown'} • ${it.camera || 'Unknown'}${gpsStr}`;
+      const metaDetails = [
+        it.location_or_event ? `📍 ${it.location_or_event}` : null,
+        it.setting ? `🏷️ ${formatSettingTag(it.setting)}` : null,
+        (it.taker_perspective && it.taker_perspective !== 'unknown') ? `👤 ${formatPerspectiveTag(it.taker_perspective)}` : null
+      ].filter(Boolean);
+      document.getElementById('focusSetting').innerText = metaDetails.length > 0 ? metaDetails.join(' • ') : 'No location/setting tags';
       document.getElementById('focusDesc').innerHTML = `<b>AI Vision:</b> ${it.visual_description || 'No description available.'}`;
 
+      const itCp = it.cluster_path || (it.tier2_cluster ? [it.tier1_cluster, it.tier2_cluster] : [it.tier1_cluster || 'Review & Unassigned']);
+
+      // Determine hotkey choices (1-9)
+      let activeNode = DATA.cluster_tree;
+      for (const part of activeClusterPath) {
+        if (activeNode && activeNode.children) {
+          activeNode = activeNode.children.find(c => c.name.toLowerCase() === part.toLowerCase());
+        }
+      }
+
+      currentFocusChoices = [];
       const btnGrid = document.getElementById('focusHotkeyButtons');
       btnGrid.innerHTML = '';
 
-      if (currentPass === 1) {
-        document.getElementById('focusAssignTitle').innerText = 'Assign Top-Level Cluster (Keys 1-9)';
-        DATA.tier1_clusters.slice(0, 9).forEach((c, idx) => {
-          const btn = document.createElement('button');
-          btn.className = `key-pick-btn ${it.tier1_cluster === c ? 'current' : ''}`;
-          btn.innerHTML = `<span>${c}</span><span class="num">${idx + 1}</span>`;
-          btn.onclick = () => assignFocusCluster(c);
-          btnGrid.appendChild(btn);
-        });
+      const isRoot = activeClusterPath.length === 0;
+      if (activeNode && activeNode.children && activeNode.children.length > 0) {
+        document.getElementById('focusAssignTitle').innerText = isRoot
+          ? 'Assign Top-Level Cluster (Keys 1-9)'
+          : `Assign Subcluster in "${activeClusterPath.join(' / ')}" (Keys 1-9)`;
+        currentFocusChoices = activeNode.children.slice(0, 9).map(c => [...activeClusterPath, c.name]);
+      } else if (activeClusterPath.length > 1) {
+        const parentPath = activeClusterPath.slice(0, -1);
+        let pNode = DATA.cluster_tree;
+        for (const part of parentPath) {
+          if (pNode && pNode.children) {
+            pNode = pNode.children.find(c => c.name.toLowerCase() === part.toLowerCase());
+          }
+        }
+        document.getElementById('focusAssignTitle').innerText = `Sibling Clusters in "${parentPath.join(' / ')}" (Keys 1-9)`;
+        currentFocusChoices = (pNode && pNode.children ? pNode.children : []).slice(0, 9).map(c => [...parentPath, c.name]);
       } else {
-        document.getElementById('focusAssignTitle').innerText = `Assign Subcluster for "${it.tier1_cluster}" (Keys 1-9)`;
-        const subcats = DATA.tier2_clusters[it.tier1_cluster] || [];
-        subcats.slice(0, 9).forEach((sc, idx) => {
-          const btn = document.createElement('button');
-          btn.className = `key-pick-btn ${it.tier2_cluster === sc ? 'current' : ''}`;
-          btn.style.borderColor = 'rgba(188,140,255,0.3)';
-          btn.innerHTML = `<span style="color:var(--purple);">↳ ${sc}</span><span class="num">${idx + 1}</span>`;
-          btn.onclick = () => assignFocusSubcluster(sc);
-          btnGrid.appendChild(btn);
-        });
+        document.getElementById('focusAssignTitle').innerText = 'Assign Top-Level Cluster (Keys 1-9)';
+        currentFocusChoices = (DATA.tier1_clusters || []).slice(0, 9).map(c => [c]);
       }
 
-      const subBox = document.getElementById('focusSubclusterAssignBox');
-      const subSelect = document.getElementById('focusSubclusterSelect');
-      const parentSel = document.getElementById('focusParentSelect');
-      const subcats = DATA.tier2_clusters[it.tier1_cluster] || [];
-      
-      if (currentPass === 2) {
-        subBox.style.display = 'block';
-        subSelect.innerHTML = `<option value="">(None / Clear Subcluster)</option>` + subcats.map(s => `<option value="${s}" ${it.tier2_cluster === s ? 'selected' : ''}>↳ ${s}</option>`).join('');
-        if (parentSel) {
-          parentSel.innerHTML = `<option value="">(Move to Different Parent Cluster...)</option>` + 
-            DATA.tier1_clusters.filter(c => c !== it.tier1_cluster && c !== 'Trash / To Delete').map(c => `<option value="${c}">${c}</option>`).join('');
-        }
-      } else {
-        subBox.style.display = 'none';
+      currentFocusChoices.forEach((optPath, idx) => {
+        const btn = document.createElement('button');
+        const isCurrent = isPathEqual(itCp, optPath);
+        btn.className = `key-pick-btn ${isCurrent ? 'current' : ''}`;
+        const name = optPath[optPath.length - 1];
+        btn.innerHTML = `<span>${optPath.length > 1 ? '↳ ' : ''}${escapeHtml(name)}</span><span class="num">${idx + 1}</span>`;
+        btn.onclick = () => assignFocusClusterPath(optPath);
+        btnGrid.appendChild(btn);
+      });
+
+      // Populate universal cluster select
+      const allPaths = getAllClusterPaths();
+      const uSelect = document.getElementById('focusUniversalSelect');
+      if (uSelect) {
+        const newOptLabel = isRoot ? '+ Create New Cluster...' : '+ Create New Subcluster...';
+        uSelect.innerHTML = `<option value="">(Choose destination cluster...)</option>` +
+          allPaths.map(p => {
+            const indent = '&nbsp;&nbsp;'.repeat(Math.max(0, p.length - 1));
+            const prefix = p.length > 1 ? '↳ ' : '📁 ';
+            const isSel = isPathEqual(itCp, p);
+            return `<option value="${JSON.stringify(p).replace(/"/g, '&quot;')}" ${isSel ? 'selected' : ''}>${indent}${prefix}${escapeHtml(p.join(' / '))}</option>`;
+          }).join('') + `<option value="__NEW__">${newOptLabel}</option>`;
       }
+    }
+
+    function triggerFocusHotkey(idx) {
+      if (currentFocusChoices && currentFocusChoices[idx]) {
+        assignFocusClusterPath(currentFocusChoices[idx]);
+      }
+    }
+
+    function handleFocusUniversalSelect(selectElem) {
+      const val = selectElem.value;
+      if (!val) return;
+      if (val === '__NEW__') {
+        openCreateClusterModal(activeClusterPath, (newPath) => {
+          assignFocusClusterPath(newPath);
+        });
+      } else {
+        const targetPath = JSON.parse(val);
+        assignFocusClusterPath(targetPath);
+      }
+      selectElem.value = '';
     }
 
     function navFocus(delta) {
@@ -2191,14 +2655,7 @@
     }
 
     function openFocusOnPhoto(fn) {
-      let items = Object.values(DATA.items);
-      if (selectedTier1 !== 'ALL') items = items.filter(it => it.tier1_cluster === selectedTier1);
-      if (currentPass === 2) {
-        if (selectedTier2 === '__NONE__') items = items.filter(it => !it.tier2_cluster);
-        else if (selectedTier2 !== 'ALL') items = items.filter(it => it.tier2_cluster === selectedTier2);
-      }
-      items = items.filter(filterItemByTriage);
-      flatFocusList = items;
+      flatFocusList = getVisibleGridItems();
       const idx = flatFocusList.findIndex(x => x.filename === fn);
       if (idx !== -1) {
         currentFocusIndex = idx;
@@ -2206,217 +2663,108 @@
       }
     }
 
-    /* CONFIRM / REVIEW ACTIONS */
-    async function confirmSession(sessionKey) {
-      const session = DATA.sessions.find(s => s.session_key === sessionKey);
-      if (!session) return;
-      const fns = session.items.map(it => it.filename);
-      recordUndoAction(`Confirm session (${fns.length} photos)`, fns);
-
-      fns.forEach(fn => {
-        if (DATA.items[fn]) DATA.items[fn].tier1_reviewed = true;
-      });
-      session.tier1_reviewed = true;
-      refreshLocalCounts();
-      renderSidebar();
-      const reviewedCount1 = currentPass === 1 ? DATA.total_tier1_reviewed : DATA.total_tier2_reviewed;
-      document.getElementById('libraryCountBadge').innerText = `${reviewedCount1} / ${DATA.total_items} Verified`;
-      showToast(`✓ Confirmed session (${fns.length} photos)`);
-
-      // Animate out card if in Inbox mode
-      if (currentTriage === 'pending') {
-        const cardElem = document.getElementById(`card-${sessionKey.replace(/[^a-zA-Z0-9]/g, '_')}`);
-        if (cardElem) {
-          cardElem.style.opacity = '0';
-          cardElem.style.transform = 'translateY(-10px)';
-          setTimeout(() => renderAll(), 200);
-        } else {
-          renderAll();
-        }
-      } else {
-        renderAll();
-      }
-
-      await fetch('/api/items/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filenames: fns, pass: 1 })
-      });
-    }
-
-    async function confirmSessionSub(sessionKey) {
-      const session = DATA.sessions.find(s => s.session_key === sessionKey);
-      if (!session) return;
-      const fns = session.items.map(it => it.filename);
-      recordUndoAction(`Confirm subcluster session (${fns.length} photos)`, fns);
-
-      fns.forEach(fn => {
-        if (DATA.items[fn]) DATA.items[fn].tier2_reviewed = true;
-      });
-      session.tier2_reviewed = true;
-      refreshLocalCounts();
-      renderSidebar();
-      renderParentBanner();
-      const reviewedCount2 = currentPass === 1 ? DATA.total_tier1_reviewed : DATA.total_tier2_reviewed;
-      document.getElementById('libraryCountBadge').innerText = `${reviewedCount2} / ${DATA.total_items} Verified`;
-      showToast(`✓ Confirmed subcluster session (${fns.length} photos)`);
-
-      if (currentTriage === 'pending') {
-        const cardElem = document.getElementById(`card-${sessionKey.replace(/[^a-zA-Z0-9]/g, '_')}`);
-        if (cardElem) {
-          cardElem.style.opacity = '0';
-          cardElem.style.transform = 'translateY(-10px)';
-          setTimeout(() => renderAll(), 200);
-        } else {
-          renderAll();
-        }
-      } else {
-        renderAll();
-      }
-
-      await fetch('/api/items/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filenames: fns, pass: 2 })
-      });
-    }
-
     async function confirmFocusCurrent() {
       if (flatFocusList.length === 0) return;
       const it = flatFocusList[currentFocusIndex];
+      const targetDepth = Math.max(activeClusterPath.length, 1);
       recordUndoAction(`Confirm photo "${it.filename}"`, [it.filename]);
 
-      if (currentPass === 1) it.tier1_reviewed = true;
-      else it.tier2_reviewed = true;
+      it.reviewed_depth = Math.max(it.reviewed_depth || 0, targetDepth);
+      if (targetDepth >= 1) it.tier1_reviewed = true;
+      if (targetDepth >= 2) it.tier2_reviewed = true;
+      it.status = 'confirmed';
+      it.need_review = false;
+
+      if (DATA.items[it.filename]) {
+        DATA.items[it.filename].reviewed_depth = it.reviewed_depth;
+        DATA.items[it.filename].tier1_reviewed = it.tier1_reviewed;
+        DATA.items[it.filename].tier2_reviewed = it.tier2_reviewed;
+        DATA.items[it.filename].status = 'confirmed';
+        DATA.items[it.filename].need_review = false;
+      }
+      if (DATA.sessions) {
+        DATA.sessions.forEach(s => {
+          s.items.forEach(sIt => {
+            if (sIt.filename === it.filename) {
+              sIt.reviewed_depth = it.reviewed_depth;
+              sIt.tier1_reviewed = it.tier1_reviewed;
+              sIt.tier2_reviewed = it.tier2_reviewed;
+              sIt.status = 'confirmed';
+              sIt.need_review = false;
+            }
+          });
+        });
+      }
 
       await fetch('/api/items/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filenames: [it.filename], pass: currentPass })
+        body: JSON.stringify({ filenames: [it.filename], depth: targetDepth })
       });
 
+      refreshLocalCounts();
       showToast(`✓ Confirmed photo`);
       navFocus(1);
     }
 
-    /* CLUSTER MOVEMENT ACTIONS (WITH SAME-CLUSTER CONFIRMATION & ADVANCE) */
-    async function assignFocusCluster(clusterName) {
-      if (flatFocusList.length === 0 || !clusterName) return;
+    /* CLUSTER MOVEMENT ACTIONS (SAME-CLUSTER CONFIRMS & ADVANCES) */
+    async function assignFocusClusterPath(targetPath) {
+      if (flatFocusList.length === 0 || !targetPath) return;
       const it = flatFocusList[currentFocusIndex];
-      const isSameCluster = it.tier1_cluster === clusterName;
+      const currentPath = it.cluster_path || (it.tier2_cluster ? [it.tier1_cluster, it.tier2_cluster] : [it.tier1_cluster || 'Review & Unassigned']);
+      const isSame = isPathEqual(currentPath, targetPath);
+      const targetName = targetPath.join(' / ');
 
-      recordUndoAction(isSameCluster ? `Confirm "${clusterName}"` : `Move to "${clusterName}"`, [it.filename]);
+      recordUndoAction(isSame ? `Confirm "${targetName}"` : `Move to "${targetName}"`, [it.filename]);
 
-      it.tier1_cluster = clusterName;
+      it.cluster_path = [...targetPath];
+      it.tier1_cluster = targetPath[0] || 'Review & Unassigned';
+      it.tier2_cluster = targetPath[1] || null;
+      it.reviewed_depth = Math.max(it.reviewed_depth || 0, targetPath.length);
       it.tier1_reviewed = true;
-      if (!isSameCluster) {
-        it.tier2_cluster = null;
-        it.tier2_reviewed = false;
+      if (targetPath.length >= 2) it.tier2_reviewed = true;
+
+      if (DATA.items[it.filename]) {
+        DATA.items[it.filename].cluster_path = [...targetPath];
+        DATA.items[it.filename].tier1_cluster = targetPath[0] || 'Review & Unassigned';
+        DATA.items[it.filename].tier2_cluster = targetPath[1] || null;
+        DATA.items[it.filename].reviewed_depth = it.reviewed_depth;
+        DATA.items[it.filename].tier1_reviewed = it.tier1_reviewed;
+        DATA.items[it.filename].tier2_reviewed = it.tier2_reviewed;
+      }
+      if (DATA.sessions) {
+        DATA.sessions.forEach(s => {
+          s.items.forEach(sIt => {
+            if (sIt.filename === it.filename) {
+              sIt.cluster_path = [...targetPath];
+              sIt.tier1_cluster = targetPath[0] || 'Review & Unassigned';
+              sIt.tier2_cluster = targetPath[1] || null;
+              sIt.reviewed_depth = it.reviewed_depth;
+              sIt.tier1_reviewed = it.tier1_reviewed;
+              sIt.tier2_reviewed = it.tier2_reviewed;
+            }
+          });
+        });
       }
       refreshLocalCounts();
 
-      if (isSameCluster) {
+      if (isSame) {
         await fetch('/api/items/confirm', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filenames: [it.filename], pass: 1 })
+          body: JSON.stringify({ filenames: [it.filename], depth: targetPath.length })
         });
-        showToast(`✓ Confirmed "${clusterName}"`);
+        showToast(`✓ Confirmed "${targetName}"`);
       } else {
         await fetch('/api/items/move', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filenames: [it.filename], tier1_cluster: clusterName, tier2_cluster: null })
+          body: JSON.stringify({ filenames: [it.filename], target_path: targetPath })
         });
-        showToast(`Moved to "${clusterName}"`);
+        showToast(`Moved to "${targetName}"`);
       }
 
       navFocus(1);
-    }
-
-    async function assignFocusSubcluster(subName) {
-      if (flatFocusList.length === 0) return;
-      const it = flatFocusList[currentFocusIndex];
-      const isSameSub = it.tier2_cluster === subName;
-
-      recordUndoAction(isSameSub ? `Confirm "↳ ${subName}"` : `Assign "↳ ${subName}"`, [it.filename]);
-
-      it.tier2_cluster = subName || null;
-      it.tier2_reviewed = true;
-      refreshLocalCounts();
-
-      if (isSameSub) {
-        await fetch('/api/items/confirm', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filenames: [it.filename], pass: 2 })
-        });
-        showToast(`✓ Confirmed "↳ ${subName}"`);
-      } else {
-        await fetch('/api/items/move', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filenames: [it.filename], tier1_cluster: it.tier1_cluster, tier2_cluster: it.tier2_cluster })
-        });
-        showToast(`Assigned to "↳ ${subName}"`);
-      }
-
-      navFocus(1);
-    }
-
-    async function moveSession(sessionKey, targetTier1) {
-      const session = DATA.sessions.find(s => s.session_key === sessionKey);
-      if (!session) return;
-      const fns = session.items.map(it => it.filename);
-      recordUndoAction(`Move session to "${targetTier1}"`, fns);
-
-      fns.forEach(fn => {
-        if (DATA.items[fn]) {
-          DATA.items[fn].tier1_cluster = targetTier1;
-          DATA.items[fn].tier1_reviewed = true;
-          DATA.items[fn].tier2_cluster = null;
-          DATA.items[fn].tier2_reviewed = false;
-        }
-      });
-      session.tier1_cluster = targetTier1;
-      session.tier1_reviewed = true;
-      session.tier2_cluster = null;
-      session.tier2_reviewed = false;
-      session.session_key = `${session.session_date}___${targetTier1}`;
-
-      refreshLocalCounts();
-      renderAll();
-      showToast(`Moved session to "${targetTier1}"`);
-
-      await fetch('/api/items/move', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filenames: fns, tier1_cluster: targetTier1, tier2_cluster: null })
-      });
-    }
-
-    async function moveSessionSub(sessionKey, targetTier2) {
-      const session = DATA.sessions.find(s => s.session_key === sessionKey);
-      if (!session) return;
-      const fns = session.items.map(it => it.filename);
-      recordUndoAction(`Assign session to "↳ ${targetTier2}"`, fns);
-
-      fns.forEach(fn => {
-        if (DATA.items[fn]) {
-          DATA.items[fn].tier2_cluster = targetTier2;
-          DATA.items[fn].tier2_reviewed = true;
-        }
-      });
-      session.tier2_cluster = targetTier2;
-      session.tier2_reviewed = true;
-      renderAll();
-      showToast(`Assigned session to "↳ ${targetTier2}"`);
-
-      await fetch('/api/items/move', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filenames: fns, tier1_cluster: session.tier1_cluster, tier2_cluster: targetTier2 })
-      });
     }
 
     /* BATCH MULTI-SELECT */
@@ -2452,60 +2800,50 @@
     function renderBatchSelect() {
       const sel = document.getElementById('batchTargetSelect');
       const parentGroup = document.getElementById('batchParentGroup');
-      const parentSel = document.getElementById('batchParentTargetSelect');
+      if (parentGroup) parentGroup.style.display = 'none';
+      if (!sel) return;
       sel.innerHTML = '';
-      if (currentPass === 1) {
-        document.getElementById('batchActionLabel').innerText = 'Move selected to:';
-        if (parentGroup) parentGroup.style.display = 'none';
-        DATA.tier1_clusters.forEach(c => {
-          sel.innerHTML += `<option value="${c}">${c}</option>`;
-        });
-      } else {
-        document.getElementById('batchActionLabel').innerText = `Assign subcluster in "${selectedTier1}":`;
-        if (parentGroup) {
-          parentGroup.style.display = 'inline-flex';
-          parentSel.innerHTML = DATA.tier1_clusters
-            .filter(c => c !== selectedTier1 && c !== 'Trash / To Delete')
-            .map(c => `<option value="${c}">${c}</option>`).join('');
-        }
-        const subcats = DATA.tier2_clusters[selectedTier1] || [];
-        subcats.forEach(s => {
-          sel.innerHTML += `<option value="${s}">↳ ${s}</option>`;
-        });
-      }
+      document.getElementById('batchActionLabel').innerText = 'Move selected to:';
+
+      const paths = getAllClusterPaths();
+      paths.forEach(p => {
+        const indent = '&nbsp;&nbsp;'.repeat(Math.max(0, p.length - 1));
+        const prefix = p.length > 1 ? '↳ ' : '📁 ';
+        sel.innerHTML += `<option value="${JSON.stringify(p).replace(/"/g, '&quot;')}">${indent}${prefix}${escapeHtml(p.join(' / '))}</option>`;
+      });
     }
 
     async function executeBatchMove() {
-      const target = document.getElementById('batchTargetSelect').value;
-      if (!target || selectedFilenames.size === 0) return;
+      const sel = document.getElementById('batchTargetSelect');
+      if (!sel || !sel.value || selectedFilenames.size === 0) return;
+      const targetPath = JSON.parse(sel.value);
       const fns = Array.from(selectedFilenames);
-      recordUndoAction(currentPass === 1 ? `Batch move ${fns.length} photos to "${target}"` : `Batch assign ${fns.length} photos to "↳ ${target}"`, fns);
+      const targetName = targetPath.join(' / ');
+      recordUndoAction(`Batch move ${fns.length} photos to "${targetName}"`, fns);
 
-      if (currentPass === 1) {
-        fns.forEach(fn => {
-          if (DATA.items[fn]) {
-            DATA.items[fn].tier1_cluster = target;
-            DATA.items[fn].tier1_reviewed = true;
-            DATA.items[fn].tier2_cluster = null;
-            DATA.items[fn].tier2_reviewed = false;
-          }
-        });
-        await fetch('/api/items/move', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filenames: fns, tier1_cluster: target, tier2_cluster: null })
-        });
-      } else {
-        fns.forEach(fn => {
-          if (DATA.items[fn]) {
-            DATA.items[fn].tier2_cluster = target;
-            DATA.items[fn].tier2_reviewed = true;
-          }
-        });
-        await fetch('/api/items/move', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filenames: fns, tier1_cluster: selectedTier1, tier2_cluster: target })
+      fns.forEach(fn => {
+        if (DATA.items[fn]) {
+          DATA.items[fn].cluster_path = [...targetPath];
+          DATA.items[fn].tier1_cluster = targetPath[0] || 'Review & Unassigned';
+          DATA.items[fn].tier2_cluster = targetPath[1] || null;
+          DATA.items[fn].reviewed_depth = targetPath.length;
+          DATA.items[fn].tier1_reviewed = true;
+          if (targetPath.length >= 2) DATA.items[fn].tier2_reviewed = true;
+        }
+      });
+
+      if (DATA.sessions) {
+        DATA.sessions.forEach(s => {
+          s.items.forEach(it => {
+            if (selectedFilenames.has(it.filename)) {
+              it.cluster_path = [...targetPath];
+              it.tier1_cluster = targetPath[0] || 'Review & Unassigned';
+              it.tier2_cluster = targetPath[1] || null;
+              it.reviewed_depth = targetPath.length;
+              it.tier1_reviewed = true;
+              if (targetPath.length >= 2) it.tier2_reviewed = true;
+            }
+          });
         });
       }
 
@@ -2513,35 +2851,56 @@
       updateBatchBar();
       refreshLocalCounts();
       renderAll();
-      showToast(`Updated ${fns.length} photos`);
-    }
-
-    async function executeBatchMoveParent() {
-      const target = document.getElementById('batchParentTargetSelect').value;
-      if (!target || selectedFilenames.size === 0) return;
-      const fns = Array.from(selectedFilenames);
-      recordUndoAction(`Batch move ${fns.length} photos to parent "${target}"`, fns);
-
-      fns.forEach(fn => {
-        if (DATA.items[fn]) {
-          DATA.items[fn].tier1_cluster = target;
-          DATA.items[fn].tier1_reviewed = true;
-          DATA.items[fn].tier2_cluster = null;
-          DATA.items[fn].tier2_reviewed = false;
-        }
-      });
+      showToast(`Moved ${fns.length} photos to "${targetName}"`);
 
       await fetch('/api/items/move', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filenames: fns, tier1_cluster: target, tier2_cluster: null })
+        body: JSON.stringify({ filenames: fns, target_path: targetPath })
       });
+    }
+
+    async function executeBatchConfirm() {
+      if (selectedFilenames.size === 0) return;
+      const fns = Array.from(selectedFilenames);
+      const targetDepth = Math.max(activeClusterPath.length, 1);
+      recordUndoAction(`Batch confirm ${fns.length} photos`, fns);
+
+      fns.forEach(fn => {
+        if (DATA.items[fn]) {
+          DATA.items[fn].reviewed_depth = Math.max(DATA.items[fn].reviewed_depth || 0, targetDepth);
+          if (targetDepth >= 1) DATA.items[fn].tier1_reviewed = true;
+          if (targetDepth >= 2) DATA.items[fn].tier2_reviewed = true;
+          DATA.items[fn].status = 'confirmed';
+          DATA.items[fn].need_review = false;
+        }
+      });
+
+      if (DATA.sessions) {
+        DATA.sessions.forEach(s => {
+          s.items.forEach(it => {
+            if (selectedFilenames.has(it.filename)) {
+              it.reviewed_depth = Math.max(it.reviewed_depth || 0, targetDepth);
+              if (targetDepth >= 1) it.tier1_reviewed = true;
+              if (targetDepth >= 2) it.tier2_reviewed = true;
+              it.status = 'confirmed';
+              it.need_review = false;
+            }
+          });
+        });
+      }
 
       selectedFilenames.clear();
       updateBatchBar();
       refreshLocalCounts();
       renderAll();
-      showToast(`Moved ${fns.length} photos to parent "${target}"`);
+      showToast(`✓ Confirmed ${fns.length} photos`);
+
+      await fetch('/api/items/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filenames: fns, depth: targetDepth })
+      });
     }
 
     /* DELETE / TRASH ACTIONS */
@@ -2553,12 +2912,21 @@
 
       fns.forEach(fn => {
         if (DATA.items[fn]) {
+          DATA.items[fn].cluster_path = ['Trash / To Delete'];
           DATA.items[fn].tier1_cluster = 'Trash / To Delete';
           DATA.items[fn].tier1_reviewed = true;
           DATA.items[fn].tier2_cluster = null;
           DATA.items[fn].tier2_reviewed = false;
         }
       });
+      session.items.forEach(it => {
+        it.cluster_path = ['Trash / To Delete'];
+        it.tier1_cluster = 'Trash / To Delete';
+        it.tier1_reviewed = true;
+        it.tier2_cluster = null;
+        it.tier2_reviewed = false;
+      });
+      session.cluster_path = ['Trash / To Delete'];
       session.tier1_cluster = 'Trash / To Delete';
       session.tier1_reviewed = true;
       session.tier2_cluster = null;
@@ -2571,6 +2939,7 @@
       if (currentTriage === 'pending') {
         const cardElem = document.getElementById(`card-${sessionKey.replace(/[^a-zA-Z0-9]/g, '_')}`);
         if (cardElem) {
+          cardElem.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
           cardElem.style.opacity = '0';
           cardElem.style.transform = 'translateY(-10px)';
           setTimeout(() => renderAll(), 200);
@@ -2591,10 +2960,24 @@
     async function deleteSingleItem(fn) {
       recordUndoAction(`Move photo to Trash`, [fn]);
       if (DATA.items[fn]) {
+        DATA.items[fn].cluster_path = ['Trash / To Delete'];
         DATA.items[fn].tier1_cluster = 'Trash / To Delete';
         DATA.items[fn].tier1_reviewed = true;
         DATA.items[fn].tier2_cluster = null;
         DATA.items[fn].tier2_reviewed = false;
+      }
+      if (DATA.sessions) {
+        DATA.sessions.forEach(s => {
+          s.items.forEach(it => {
+            if (it.filename === fn) {
+              it.cluster_path = ['Trash / To Delete'];
+              it.tier1_cluster = 'Trash / To Delete';
+              it.tier1_reviewed = true;
+              it.tier2_cluster = null;
+              it.tier2_reviewed = false;
+            }
+          });
+        });
       }
       refreshLocalCounts();
       renderAll();
@@ -2611,10 +2994,32 @@
       if (flatFocusList.length === 0) return;
       const it = flatFocusList[currentFocusIndex];
       recordUndoAction(`Move photo to Trash`, [it.filename]);
+      it.cluster_path = ['Trash / To Delete'];
       it.tier1_cluster = 'Trash / To Delete';
       it.tier1_reviewed = true;
       it.tier2_cluster = null;
       it.tier2_reviewed = false;
+
+      if (DATA.items[it.filename]) {
+        DATA.items[it.filename].cluster_path = ['Trash / To Delete'];
+        DATA.items[it.filename].tier1_cluster = 'Trash / To Delete';
+        DATA.items[it.filename].tier1_reviewed = true;
+        DATA.items[it.filename].tier2_cluster = null;
+        DATA.items[it.filename].tier2_reviewed = false;
+      }
+      if (DATA.sessions) {
+        DATA.sessions.forEach(s => {
+          s.items.forEach(sIt => {
+            if (sIt.filename === it.filename) {
+              sIt.cluster_path = ['Trash / To Delete'];
+              sIt.tier1_cluster = 'Trash / To Delete';
+              sIt.tier1_reviewed = true;
+              sIt.tier2_cluster = null;
+              sIt.tier2_reviewed = false;
+            }
+          });
+        });
+      }
 
       await fetch('/api/items/delete', {
         method: 'POST',
@@ -2634,12 +3039,26 @@
 
       fns.forEach(fn => {
         if (DATA.items[fn]) {
+          DATA.items[fn].cluster_path = ['Trash / To Delete'];
           DATA.items[fn].tier1_cluster = 'Trash / To Delete';
           DATA.items[fn].tier1_reviewed = true;
           DATA.items[fn].tier2_cluster = null;
           DATA.items[fn].tier2_reviewed = false;
         }
       });
+      if (DATA.sessions) {
+        DATA.sessions.forEach(s => {
+          s.items.forEach(it => {
+            if (selectedFilenames.has(it.filename)) {
+              it.cluster_path = ['Trash / To Delete'];
+              it.tier1_cluster = 'Trash / To Delete';
+              it.tier1_reviewed = true;
+              it.tier2_cluster = null;
+              it.tier2_reviewed = false;
+            }
+          });
+        });
+      }
       selectedFilenames.clear();
       updateBatchBar();
       refreshLocalCounts();
@@ -2654,89 +3073,110 @@
     }
 
     function refreshLocalCounts() {
+      if (!DATA || !DATA.items) return;
+      const allPaths = getAllClusterPaths();
+      const nodeStats = {};
+      allPaths.forEach(p => {
+        nodeStats[p.join(' / ')] = { total: 0, reviewed: 0, direct: 0 };
+      });
+
       const counts = {};
       const t1Rev = {};
       const t2Rev = {};
-      DATA.tier1_clusters.forEach(c => {
+      (DATA.tier1_clusters || []).forEach(c => {
         counts[c] = 0;
         t1Rev[c] = 0;
         t2Rev[c] = 0;
       });
+      let fullyRev = 0;
+
       Object.values(DATA.items).forEach(it => {
-        const c = it.tier1_cluster || 'Review & Unassigned';
+        const cp = it.cluster_path || (it.tier2_cluster ? [it.tier1_cluster, it.tier2_cluster] : [it.tier1_cluster || 'Review & Unassigned']);
+        const c = cp[0] || 'Review & Unassigned';
         counts[c] = (counts[c] || 0) + 1;
-        if (it.tier1_reviewed) t1Rev[c] = (t1Rev[c] || 0) + 1;
-        if (it.tier2_reviewed) t2Rev[c] = (t2Rev[c] || 0) + 1;
+        const rd = it.reviewed_depth || (it.tier2_reviewed ? 2 : (it.tier1_reviewed ? 1 : 0));
+        if (rd >= 1) t1Rev[c] = (t1Rev[c] || 0) + 1;
+        if (rd >= 2) t2Rev[c] = (t2Rev[c] || 0) + 1;
+        if (rd >= cp.length) fullyRev++;
+
+        const directKey = cp.join(' / ');
+        if (nodeStats[directKey]) {
+          nodeStats[directKey].direct += 1;
+        }
+
+        for (let i = 1; i <= cp.length; i++) {
+          const prefixKey = cp.slice(0, i).join(' / ');
+          if (nodeStats[prefixKey]) {
+            nodeStats[prefixKey].total += 1;
+            if (rd >= i) {
+              nodeStats[prefixKey].reviewed += 1;
+            }
+          }
+        }
       });
+
+      DATA.node_stats = nodeStats;
       DATA.counts = counts;
       DATA.tier1_reviewed_counts = t1Rev;
       DATA.tier2_reviewed_counts = t2Rev;
-      DATA.total_tier1_reviewed = Object.values(t1Rev).reduce((a,b)=>a+b, 0);
-      DATA.total_tier2_reviewed = Object.values(t2Rev).reduce((a,b)=>a+b, 0);
+      DATA.total_tier1_reviewed = Object.values(t1Rev).reduce((a, b) => a + b, 0);
+      DATA.total_tier2_reviewed = Object.values(t2Rev).reduce((a, b) => a + b, 0);
+      DATA.total_fully_reviewed = fullyRev;
+
+      if (DATA.sessions) {
+        DATA.sessions.forEach(s => {
+          s.tier1_reviewed = s.items.length > 0 && s.items.every(it => (it.reviewed_depth || 0) >= 1);
+          s.tier2_reviewed = s.items.length > 0 && s.items.every(it => (it.reviewed_depth || 0) >= 2);
+          s.fully_reviewed = s.items.length > 0 && s.items.every(it => (it.reviewed_depth || 0) >= (it.cluster_path || []).length);
+        });
+      }
     }
 
-    /* DYNAMIC CLUSTER MODALS */
-    function openCreateClusterModal() {
-      document.getElementById('modalTitle').innerText = 'Create Top-Level Cluster';
-      document.getElementById('modalInput').value = '';
+    /* DYNAMIC CLUSTER MODALS (N-LEVEL ARBITRARY NESTING) */
+    function openCreateClusterModal(parentPath = activeClusterPath, callback = null, defaultName = '') {
+      const p = parentPath || [];
+      const title = p.length === 0 ? 'Create Top-Level Cluster' : `Create Subcluster inside "${p.join(' / ')}"`;
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalInput').value = defaultName;
       document.getElementById('modalOverlay').style.display = 'flex';
       document.getElementById('modalInput').focus();
       modalCallback = async (val) => {
-        await fetch('/api/cluster/create', {
+        if (!val) return;
+        const res = await fetch('/api/cluster/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ level: 1, name: val })
+          body: JSON.stringify({ parent_path: p, name: val })
         });
-        init();
-      };
-    }
-
-    function openCreateSubclusterModal(cb = null) {
-      document.getElementById('modalTitle').innerText = `Create Subcluster inside "${selectedTier1}"`;
-      document.getElementById('modalInput').value = '';
-      document.getElementById('modalOverlay').style.display = 'flex';
-      document.getElementById('modalInput').focus();
-      modalCallback = async (val) => {
-        await fetch('/api/cluster/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ level: 2, name: val, parent_tier1: selectedTier1 })
-        });
+        const data = await res.json();
         await init();
-        if (cb) cb(val);
+        if (callback && data.ok) {
+          callback(data.cluster_path);
+        }
       };
     }
 
-    function openRenameClusterModal(oldName) {
-      document.getElementById('modalTitle').innerText = `Rename Cluster "${oldName}"`;
+    function openRenameClusterModal(targetPath = activeClusterPath) {
+      if (!targetPath || targetPath.length === 0) return;
+      const oldName = targetPath[targetPath.length - 1];
+      const pathStr = targetPath.join(' / ');
+      document.getElementById('modalTitle').innerText = `Rename Cluster "${pathStr}"`;
       document.getElementById('modalInput').value = oldName;
       document.getElementById('modalOverlay').style.display = 'flex';
       document.getElementById('modalInput').focus();
       modalCallback = async (val) => {
         if (!val || val === oldName) return;
-        await fetch('/api/cluster/rename', {
+        const res = await fetch('/api/cluster/rename', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ level: 1, old_name: oldName, new_name: val })
+          body: JSON.stringify({ target_path: targetPath, new_name: val })
         });
-        if (selectedTier1 === oldName) selectedTier1 = val;
-        init();
-      };
-    }
-
-    function openRenameSubclusterModal(oldSub, parent) {
-      document.getElementById('modalTitle').innerText = `Rename Subcluster "↳ ${oldSub}" in "${parent}"`;
-      document.getElementById('modalInput').value = oldSub;
-      document.getElementById('modalOverlay').style.display = 'flex';
-      document.getElementById('modalInput').focus();
-      modalCallback = async (val) => {
-        if (!val || val === oldSub) return;
-        await fetch('/api/cluster/rename', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ level: 2, parent_tier1: parent, old_name: oldSub, new_name: val })
-        });
-        if (selectedTier2 === oldSub) selectedTier2 = val;
+        const data = await res.json();
+        if (data.ok) {
+          if (isPathPrefix(targetPath, activeClusterPath)) {
+            const rel = activeClusterPath.slice(targetPath.length);
+            activeClusterPath = [...data.new_path, ...rel];
+          }
+        }
         init();
       };
     }
@@ -2755,25 +3195,25 @@
     /* DELETE CLUSTER MODAL & ACTIONS */
     let pendingClusterDeletion = null;
 
-    function openDeleteClusterModal(level, name, parent = '') {
-      pendingClusterDeletion = { level, name, parent };
+    function openDeleteClusterModal(targetPath = activeClusterPath) {
+      if (!targetPath || targetPath.length === 0) return;
+      pendingClusterDeletion = targetPath;
       const titleElem = document.getElementById('deleteClusterModalTitle');
       const descElem = document.getElementById('deleteClusterModalDesc');
       const warnElem = document.getElementById('deleteClusterModalWarning');
 
-      if (level === 1) {
-        const count = DATA.counts[name] || 0;
-        titleElem.innerText = `🗑 Delete Cluster "${name}"`;
-        descElem.innerHTML = `Are you sure you want to delete the top-level cluster <b>"${name}"</b> (${count} photos)?`;
-        warnElem.innerHTML = `⚠️ <b>Reset to Unassigned:</b> All ${count} photos in this cluster will be unassigned, moved to <b>Review & Unassigned</b>, and marked as <b>To Review</b> so you can re-classify them.`;
-      } else {
-        const count = Object.values(DATA.items).filter(it => it.tier1_cluster === parent && it.tier2_cluster === name).length;
-        titleElem.innerText = `🗑 Delete Subcluster "↳ ${name}"`;
-        descElem.innerHTML = `Are you sure you want to delete the subcluster <b>"↳ ${name}"</b> inside "${parent}" (${count} photos)?`;
-        warnElem.innerHTML = `⚠️ <b>Reset Subcluster:</b> All ${count} photos in this subcluster will remain in <b>"${parent}"</b>, but their subcluster assignment will be cleared and marked as <b>Needs Subcluster</b>.`;
-      }
+      const pathStr = targetPath.join(' / ');
+      const stats = (DATA.node_stats && DATA.node_stats[pathStr]) || { total: 0 };
+      const count = stats.total;
 
-      document.getElementById('deleteClusterModalOverlay').style.display = 'flex';
+      titleElem.innerText = `🗑 Delete Cluster "${pathStr}"`;
+      descElem.innerHTML = `Are you sure you want to delete the cluster <b>"${escapeHtml(pathStr)}"</b> (${count} photos)?`;
+      warnElem.innerHTML = `⚠️ <b>Cascading Reset to Unassigned:</b> All ${count} photos in this cluster and all its subclusters will be reset to <b>Review & Unassigned</b> and marked for review.`;
+
+      const overlay = document.getElementById('deleteClusterModalOverlay');
+      overlay.style.display = 'flex';
+      const cancelBtn = overlay.querySelector('.btn-secondary');
+      if (cancelBtn) cancelBtn.focus();
     }
 
     function closeDeleteClusterModal() {
@@ -2783,69 +3223,25 @@
 
     async function confirmExecuteClusterDelete() {
       if (!pendingClusterDeletion) return;
-      const { level, name, parent } = pendingClusterDeletion;
+      const targetPath = pendingClusterDeletion;
       closeDeleteClusterModal();
 
-      if (level === 1) {
-        const fns = Object.values(DATA.items).filter(it => it.tier1_cluster === name).map(it => it.filename);
-        recordUndoAction(`Delete cluster "${name}" (${fns.length} photos)`, fns);
+      const fns = Object.values(DATA.items)
+        .filter(it => isPathPrefix(targetPath, it.cluster_path || [it.tier1_cluster]))
+        .map(it => it.filename);
 
-        Object.values(DATA.items).forEach(it => {
-          if (it.tier1_cluster === name) {
-            it.tier1_cluster = 'Review & Unassigned';
-            it.tier2_cluster = null;
-            it.tier1_reviewed = false;
-            it.tier2_reviewed = false;
-            it.status = 'unconfirmed';
-          }
-        });
+      recordUndoAction(`Delete cluster "${targetPath.join(' / ')}" (${fns.length} photos)`, fns);
 
-        DATA.tier1_clusters = DATA.tier1_clusters.filter(c => c !== name);
-        delete DATA.tier2_clusters[name];
+      await fetch('/api/cluster/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_path: targetPath })
+      });
 
-        if (selectedTier1 === name) {
-          selectedTier1 = 'Review & Unassigned';
-          selectedTier2 = 'ALL';
-        }
-
-        refreshLocalCounts();
-        renderAll();
-
-        await fetch('/api/cluster/delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ level: 1, name: name })
-        });
-        init();
-      } else {
-        const fns = Object.values(DATA.items).filter(it => it.tier1_cluster === parent && it.tier2_cluster === name).map(it => it.filename);
-        recordUndoAction(`Delete subcluster "↳ ${name}" (${fns.length} photos)`, fns);
-
-        Object.values(DATA.items).forEach(it => {
-          if (it.tier1_cluster === parent && it.tier2_cluster === name) {
-            it.tier2_cluster = null;
-            it.tier2_reviewed = false;
-          }
-        });
-
-        if (DATA.tier2_clusters[parent]) {
-          DATA.tier2_clusters[parent] = DATA.tier2_clusters[parent].filter(sc => sc !== name);
-        }
-
-        if (selectedTier2 === name) {
-          selectedTier2 = 'ALL';
-        }
-
-        refreshLocalCounts();
-        renderAll();
-
-        await fetch('/api/cluster/delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ level: 2, parent_tier1: parent, name: name })
-        });
-        init();
+      if (isPathPrefix(targetPath, activeClusterPath)) {
+        activeClusterPath = targetPath.slice(0, -1);
       }
+      init();
     }
 
     /* GEMINI AI SUGGESTION MODAL & ACTIONS */
@@ -2863,13 +3259,13 @@
       resultBox.style.display = 'block';
 
       if (type === 'top_level') {
-        currentAiSuggestContext = { type: 'top_level', current_pass: 1 };
+        currentAiSuggestContext = { type: 'top_level', parent_path: [] };
         titleElem.innerText = '✨ AI Suggestions for Top-Level Clusters';
         descElem.innerText = 'Gemini will examine your collection and suggest elegant, distinct top-level categories. Click any chip to add it to your taxonomy.';
       } else if (type === 'subcluster') {
-        currentAiSuggestContext = { type: 'subcluster', parent_tier1: selectedTier1, current_pass: 2 };
-        titleElem.innerText = `✨ AI Suggestions for Subclusters in "${selectedTier1}"`;
-        descElem.innerText = `Gemini will examine photos and locations in "${selectedTier1}" and suggest coherent theme/location subclusters. Click any chip to create it.`;
+        currentAiSuggestContext = { type: 'subcluster', parent_path: activeClusterPath };
+        titleElem.innerText = `✨ AI Suggestions for Subclusters in "${activeClusterPath.join(' / ')}"`;
+        descElem.innerText = `Gemini will examine photos and locations in "${activeClusterPath.join(' / ')}" and suggest coherent subclusters. Click any chip to create it.`;
       } else if (type === 'photo') {
         if (flatFocusList.length === 0) {
           showToast('No photos in view. Switch to "All" or select another cluster first.');
@@ -2879,11 +3275,10 @@
         currentAiSuggestContext = {
           type: 'photo',
           filename: it.filename,
-          parent_tier1: it.tier1_cluster || selectedTier1,
-          current_pass: currentPass
+          parent_path: activeClusterPath
         };
         titleElem.innerText = `✨ AI Category Recommendation for Photo`;
-        descElem.innerText = `Gemini will analyze "${it.filename}" visual content and recommend the best ${currentPass === 1 ? 'top-level cluster' : 'subcluster in "' + (it.tier1_cluster || selectedTier1) + '"'}.`;
+        descElem.innerText = `Gemini will analyze "${it.filename}" visual content and recommend the best category in "${activeClusterPath.length > 0 ? activeClusterPath.join(' / ') : 'Top-Level'}".`;
       }
 
       document.getElementById('aiSuggestModalOverlay').style.display = 'flex';
@@ -2912,9 +3307,8 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             type: ctx.type,
-            parent_tier1: ctx.parent_tier1 || '',
+            parent_path: ctx.parent_path || [],
             filename: ctx.filename || '',
-            current_pass: ctx.current_pass || 1,
             custom_prompt: customPrompt
           })
         });
@@ -2922,20 +3316,13 @@
         const data = await res.json();
         loadingElem.style.display = 'none';
 
-        if (ctx.type === 'top_level') {
+        if (ctx.type === 'top_level' || ctx.type === 'subcluster') {
           const list = data.suggestions || [];
+          const parentName = ctx.parent_path.length > 0 ? ctx.parent_path.join(' / ') : 'Top Level';
           outputElem.innerHTML = `
-            <div style="font-size:0.8rem; font-weight:700; color:var(--muted); text-transform:uppercase;">Click a suggestion to create cluster:</div>
+            <div style="font-size:0.8rem; font-weight:700; color:var(--muted); text-transform:uppercase;">Click a suggestion to create cluster in "${escapeHtml(parentName)}":</div>
             <div class="suggestion-chips">
-              ${list.map(s => `<button class="suggestion-chip" onclick="applyAiTopLevelCluster('${s.replace(/'/g, "\\'")}')">➕ ${s}</button>`).join('')}
-            </div>
-          `;
-        } else if (ctx.type === 'subcluster') {
-          const list = data.suggestions || [];
-          outputElem.innerHTML = `
-            <div style="font-size:0.8rem; font-weight:700; color:var(--muted); text-transform:uppercase;">Click a suggestion to create subcluster in "${ctx.parent_tier1}":</div>
-            <div class="suggestion-chips">
-              ${list.map(s => `<button class="suggestion-chip purple" onclick="applyAiSubcluster('${s.replace(/'/g, "\\'")}', '${ctx.parent_tier1}')">➕ ↳ ${s}</button>`).join('')}
+              ${list.map(s => `<button class="suggestion-chip ${ctx.parent_path.length > 0 ? 'purple' : ''}" onclick="applyAiCluster('${escapeJs(s)}')">➕ ${escapeHtml(s)}</button>`).join('')}
             </div>
           `;
         } else if (ctx.type === 'photo') {
@@ -2947,15 +3334,15 @@
           outputElem.innerHTML = `
             <div class="ai-rec-box">
               <div class="ai-rec-title">
-                <span>🎯 Recommended: ${recName}</span>
-                <button class="btn-primary" style="padding:4px 10px; font-size:0.8rem;" onclick="applyAiPhotoCategory('${recName.replace(/'/g, "\\'")}')">Accept & Advance</button>
+                <span>🎯 Recommended: ${escapeHtml(recName)}</span>
+                <button class="btn-primary" style="padding:4px 10px; font-size:0.8rem;" onclick="applyAiPhotoCategory('${escapeJs(recName)}')">Accept & Advance</button>
               </div>
-              <div class="ai-rec-desc">${expl}</div>
+              <div class="ai-rec-desc">${escapeHtml(expl)}</div>
             </div>
 
             <div style="font-size:0.8rem; font-weight:700; color:var(--muted); text-transform:uppercase; margin-top:6px;">Alternative Suggestions:</div>
             <div class="suggestion-chips">
-              ${alts.map(s => `<button class="suggestion-chip ${ctx.current_pass === 2 ? 'purple' : ''}" onclick="applyAiPhotoCategory('${s.replace(/'/g, "\\'")}')">${s}</button>`).join('')}
+              ${alts.map(s => `<button class="suggestion-chip" onclick="applyAiPhotoCategory('${escapeJs(s)}')">${escapeHtml(s)}</button>`).join('')}
             </div>
           `;
         }
@@ -2965,63 +3352,31 @@
       }
     }
 
-    async function applyAiTopLevelCluster(name) {
-      closeAiSuggestModal();
-      if (!DATA.tier1_clusters.includes(name)) {
-        await fetch('/api/cluster/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ level: 1, name: name })
-        });
-      }
-      showToast(`Created cluster "${name}"`);
-      init();
-    }
-
-    async function applyAiSubcluster(subName, parentParam = '') {
-      const parent = parentParam || (currentAiSuggestContext ? currentAiSuggestContext.parent_tier1 : selectedTier1);
+    async function applyAiCluster(name) {
+      const parentPath = (currentAiSuggestContext && currentAiSuggestContext.parent_path) || activeClusterPath || [];
       closeAiSuggestModal();
       await fetch('/api/cluster/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ level: 2, parent_tier1: parent, name: subName })
+        body: JSON.stringify({ parent_path: parentPath, name: name })
       });
-      showToast(`Created subcluster "↳ ${subName}"`);
+      showToast(`Created cluster "${name}"`);
       init();
     }
 
     async function applyAiPhotoCategory(categoryName) {
-      const fn = currentAiSuggestContext ? currentAiSuggestContext.filename : (flatFocusList[currentFocusIndex] && flatFocusList[currentFocusIndex].filename);
-      const isPass2 = currentAiSuggestContext ? currentAiSuggestContext.current_pass === 2 : currentPass === 2;
+      const parentPath = (currentAiSuggestContext && currentAiSuggestContext.parent_path) || activeClusterPath || [];
+      const targetPath = [...parentPath, categoryName];
       closeAiSuggestModal();
-      if (!fn) return;
 
-      if (!isPass2) {
-        if (!DATA.tier1_clusters.includes(categoryName)) {
-          await fetch('/api/cluster/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ level: 1, name: categoryName })
-          });
-          if (!DATA.tier1_clusters.includes(categoryName)) {
-            DATA.tier1_clusters.push(categoryName);
-            DATA.tier2_clusters[categoryName] = [];
-          }
-        }
-        await assignFocusCluster(categoryName);
-      } else {
-        const parent = currentAiSuggestContext ? currentAiSuggestContext.parent_tier1 : selectedTier1;
-        if (!DATA.tier2_clusters[parent] || !DATA.tier2_clusters[parent].includes(categoryName)) {
-          await fetch('/api/cluster/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ level: 2, parent_tier1: parent, name: categoryName })
-          });
-          if (!DATA.tier2_clusters[parent]) DATA.tier2_clusters[parent] = [];
-          if (!DATA.tier2_clusters[parent].includes(categoryName)) DATA.tier2_clusters[parent].push(categoryName);
-        }
-        await assignFocusSubcluster(categoryName);
-      }
+      await fetch('/api/cluster/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ parent_path: parentPath, name: categoryName })
+      });
+
+      await assignFocusClusterPath(targetPath);
+      init();
     }
 
     /* APPLY CONFIRMATION PREVIEW MODAL */
@@ -3060,18 +3415,58 @@
 
     async function executeConfirmedApply() {
       closeApplyModal();
-      const res = await fetch('/api/apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ only_reviewed: true })
-      });
-      const data = await res.json();
-      alert(`Success! Organized ${data.moved} confirmed photos into physical folders on disk.\nExecution manifest saved.`);
-      init();
+      try {
+        const res = await fetch('/api/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ only_reviewed: true })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          const count = data.moved_count !== undefined ? data.moved_count : (data.moved !== undefined ? data.moved : 0);
+          showToast(`Organized ${count} confirmed photos into physical folders on disk`, 'success');
+          init();
+        } else {
+          showToast(`Error applying changes: ${data.error || 'Unknown error'}`, 'error');
+        }
+      } catch (err) {
+        showToast(`Network error applying changes: ${err.message}`, 'error');
+      }
     }
 
     /* KEYBOARD SHORTCUTS */
     window.addEventListener('keydown', (e) => {
+      const t = e.target;
+      const isTyping = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+
+      if (isTyping) {
+        if (e.key === 'Escape') {
+          closeFolderModal();
+          closeModal();
+          closeApplyModal();
+          closeDeleteClusterModal();
+          closeAiSuggestModal();
+          if (t && typeof t.blur === 'function') t.blur();
+          return;
+        }
+        if (e.key === 'Enter') {
+          if (t.tagName === 'TEXTAREA') return;
+          const folderModal = document.getElementById('folderModalOverlay');
+          const genericModal = document.getElementById('modalOverlay');
+          const aiModal = document.getElementById('aiSuggestModalOverlay');
+
+          if (folderModal && folderModal.style.display === 'flex') {
+            submitOpenFolder();
+          } else if (genericModal && genericModal.style.display === 'flex') {
+            submitModal();
+          } else if (aiModal && aiModal.style.display === 'flex') {
+            generateAiSuggestions();
+          }
+          return;
+        }
+        return;
+      }
+
       // Global Undo (Cmd+Z / Ctrl+Z)
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
@@ -3079,22 +3474,25 @@
         return;
       }
 
-      if (document.getElementById('modalOverlay').style.display === 'flex' || 
-          document.getElementById('applyModalOverlay').style.display === 'flex' ||
-          document.getElementById('deleteClusterModalOverlay').style.display === 'flex' ||
-          document.getElementById('aiSuggestModalOverlay').style.display === 'flex') {
+      if ((document.getElementById('folderModalOverlay') && document.getElementById('folderModalOverlay').style.display === 'flex') ||
+          (document.getElementById('modalOverlay') && document.getElementById('modalOverlay').style.display === 'flex') || 
+          (document.getElementById('applyModalOverlay') && document.getElementById('applyModalOverlay').style.display === 'flex') ||
+          (document.getElementById('deleteClusterModalOverlay') && document.getElementById('deleteClusterModalOverlay').style.display === 'flex') ||
+          (document.getElementById('aiSuggestModalOverlay') && document.getElementById('aiSuggestModalOverlay').style.display === 'flex')) {
         if (e.key === 'Escape') {
+          closeFolderModal();
           closeModal();
           closeApplyModal();
           closeDeleteClusterModal();
           closeAiSuggestModal();
         }
         if (e.key === 'Enter') {
-          if (document.getElementById('deleteClusterModalOverlay').style.display === 'flex') {
-            confirmExecuteClusterDelete();
-          } else if (document.getElementById('modalOverlay').style.display === 'flex') {
+          if (document.getElementById('folderModalOverlay') && document.getElementById('folderModalOverlay').style.display === 'flex') {
+            submitOpenFolder();
+          } else if (document.getElementById('modalOverlay') && document.getElementById('modalOverlay').style.display === 'flex') {
             submitModal();
           }
+          // Note: Delete Cluster Modal must NOT execute on Enter
         }
         return;
       }
@@ -3121,12 +3519,7 @@
         } else if (e.key >= '1' && e.key <= '9') {
           e.preventDefault();
           const idx = parseInt(e.key) - 1;
-          if (currentPass === 1) {
-            if (DATA.tier1_clusters[idx]) assignFocusCluster(DATA.tier1_clusters[idx]);
-          } else {
-            const subcats = DATA.tier2_clusters[selectedTier1] || [];
-            if (subcats[idx]) assignFocusSubcluster(subcats[idx]);
-          }
+          triggerFocusHotkey(idx);
         }
       }
 
