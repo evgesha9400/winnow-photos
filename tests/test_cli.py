@@ -31,7 +31,8 @@ class TestCLIEntrypoint(unittest.TestCase):
                     port=8766,
                     initial_folder=str(self.dir_path),
                     force_rescan=False,
-                    open_browser=False
+                    open_browser=False,
+                    flat=False
                 )
         finally:
             os.chdir(orig_cwd)
@@ -40,13 +41,14 @@ class TestCLIEntrypoint(unittest.TestCase):
     def test_explicit_folder_argument(self, mock_run_server):
         sub = self.dir_path / "subfolder"
         sub.mkdir()
-        with patch.object(sys, "argv", ["winnow-photos", str(sub), "--port", "9123", "--scan", "--open"]):
+        with patch.object(sys, "argv", ["winnow-photos", str(sub), "--port", "9123", "--scan", "--open", "--flat"]):
             main.main()
             mock_run_server.assert_called_once_with(
                 port=9123,
                 initial_folder=str(sub),
                 force_rescan=True,
-                open_browser=True
+                open_browser=True,
+                flat=True
             )
 
     def test_nonexistent_folder_exits(self):

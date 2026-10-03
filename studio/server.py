@@ -190,11 +190,12 @@ def create_handler(manager: LibraryManager):
             if path == '/api/library/open':
                 target_folder = req.get('path', '').strip()
                 rescan = bool(req.get('rescan', False))
+                flat = bool(req.get('flat', False))
                 if not target_folder:
                     self.send_json({'ok': False, 'error': 'Folder path required'}, status=400)
                     return
                 try:
-                    payload = manager.open_folder(target_folder, rescan=rescan)
+                    payload = manager.open_folder(target_folder, rescan=rescan, flat=flat)
                     self.send_json({'ok': True, 'payload': payload})
                 except Exception as e:
                     self.send_json({'ok': False, 'error': str(e)}, status=400)
@@ -204,9 +205,22 @@ def create_handler(manager: LibraryManager):
                 if not manager.active_folder:
                     self.send_json({'ok': False, 'error': 'No active library open'}, status=400)
                     return
+                flat = bool(req.get('flat', False))
                 try:
-                    payload = manager.open_folder(manager.active_folder, rescan=True)
+                    payload = manager.open_folder(manager.active_folder, rescan=True, flat=flat)
                     self.send_json({'ok': True, 'payload': payload})
+                except Exception as e:
+                    self.send_json({'ok': False, 'error': str(e)}, status=400)
+                return
+
+            if path == '/api/library/reset':
+                if not manager.active_folder:
+                    self.send_json({'ok': False, 'error': 'No active library open'}, status=400)
+                    return
+                try:
+                    count = manager.reset_all_clusters()
+                    payload = manager.compute_payload()
+                    self.send_json({'ok': True, 'count': count, 'payload': payload})
                 except Exception as e:
                     self.send_json({'ok': False, 'error': str(e)}, status=400)
                 return
@@ -719,8 +733,8 @@ def create_handler(manager: LibraryManager):
     return CurationRequestHandler
 
 
-def run_server(port: int = 8766, initial_folder: Optional[str] = None, host: str = '127.0.0.1', force_rescan: bool = False, open_browser: bool = False):
-    manager = LibraryManager(initial_folder=initial_folder, force_rescan=force_rescan)
+def run_server(port: int = 8766, initial_folder: Optional[str] = None, host: str = '127.0.0.1', force_rescan: bool = False, open_browser: bool = False, flat: bool = False):
+    manager = LibraryManager(initial_folder=initial_folder, force_rescan=force_rescan, flat=flat)
     handler_class = create_handler(manager)
     try:
         server = ThreadingHTTPServer((host, port), handler_class)

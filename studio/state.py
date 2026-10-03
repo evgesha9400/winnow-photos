@@ -129,7 +129,7 @@ def _save_config(cfg: Dict[str, Any]) -> None:
 
 
 class LibraryManager:
-    def __init__(self, initial_folder: Optional[str | Path] = None, force_rescan: bool = False):
+    def __init__(self, initial_folder: Optional[str | Path] = None, force_rescan: bool = False, flat: bool = False):
         self.active_folder: Optional[Path] = None
         self.state_file: Optional[Path] = None
         self.cluster_tree: ClusterTree = ClusterTree()
@@ -144,12 +144,12 @@ class LibraryManager:
         self.file_cache: Dict[str, str] = {}
 
         if initial_folder:
-            self.open_folder(initial_folder, rescan=force_rescan)
+            self.open_folder(initial_folder, rescan=force_rescan, flat=flat)
         else:
             cfg = _load_config()
             last = cfg.get('last_opened')
             if last and Path(last).exists():
-                self.open_folder(last, rescan=force_rescan)
+                self.open_folder(last, rescan=force_rescan, flat=flat)
 
     @property
     def root(self) -> Optional[Path]:
@@ -192,7 +192,7 @@ class LibraryManager:
 
             self.cluster_tree.add_path(cp)
 
-    def open_folder(self, folder_path: str | Path, rescan: bool = False) -> Dict[str, Any]:
+    def open_folder(self, folder_path: str | Path, rescan: bool = False, flat: bool = False) -> Dict[str, Any]:
         """Open a folder on the PC. Scans if no state file exists or rescan requested."""
         p = Path(folder_path).resolve()
         if not p.exists() or not p.is_dir():
@@ -220,7 +220,7 @@ class LibraryManager:
                 except Exception as e:
                     logger.warning(f"Error reading {alt_state_file}: {e}")
 
-            if existing_state and not rescan:
+            if existing_state and not rescan and not flat:
                 new_state = existing_state
                 # Refresh disk paths if folder moved
                 for fn, it in new_state.get('items', {}).items():
@@ -229,7 +229,7 @@ class LibraryManager:
                         if candidate:
                             it['disk_path'] = str(candidate[0])
             else:
-                new_state = scan_directory(p, existing_state=existing_state, rescan=rescan)
+                new_state = scan_directory(p, existing_state=existing_state, rescan=rescan, flat=flat)
 
             # Update instance pointers only after folder is validated and scan/load succeeds
             self.active_folder = p
@@ -422,6 +422,32 @@ class LibraryManager:
             return canonical_new_path
 
     reparent_cluster = move_cluster
+
+    def reset_all_clusters(self) -> int:
+        """
+        Reset all cluster structures and return all items to Review & Unassigned.
+        Clears all custom clusters, resets items to status='unassigned',
+        reviewed_depth=0, need_review=True, cluster_path=['Review & Unassigned'].
+        """
+        with LOCK:
+            self.cluster_tree = ClusterTree()
+            count = 0
+            for it in self.state.get('items', {}).values():
+                it['cluster_path'] = ['Review & Unassigned']
+                it['reviewed_depth'] = 0
+                it['status'] = 'unassigned'
+                it['need_review'] = True
+                it['tier1_cluster'] = 'Review & Unassigned'
+                it['tier2_cluster'] = None
+                it['tier1_reviewed'] = False
+                it['tier2_reviewed'] = False
+                count += 1
+
+            self.state['cluster_tree'] = self.cluster_tree.to_dict()
+            self.state['tier1_clusters'] = ['Review & Unassigned', 'Trash / To Delete']
+            self.state['tier2_clusters'] = {'Review & Unassigned': [], 'Trash / To Delete': []}
+            self.save_state()
+            return count
 
     # --- ITEM LEVEL OPERATIONS ---
 
