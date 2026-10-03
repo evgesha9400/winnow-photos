@@ -5,6 +5,7 @@ range requests, folder switching, cluster editing, and undo/redo.
 """
 
 import os
+import sys
 import re
 import json
 import logging
@@ -718,13 +719,23 @@ def create_handler(manager: LibraryManager):
     return CurationRequestHandler
 
 
-def run_server(port: int = 8766, initial_folder: Optional[str] = None, host: str = '127.0.0.1', force_rescan: bool = False):
+def run_server(port: int = 8766, initial_folder: Optional[str] = None, host: str = '127.0.0.1', force_rescan: bool = False, open_browser: bool = False):
     manager = LibraryManager(initial_folder=initial_folder, force_rescan=force_rescan)
     handler_class = create_handler(manager)
-    server = HTTPServer((host, port), handler_class)
-    print(f"Photo Curation Studio running at http://{host}:{port}")
+    try:
+        server = HTTPServer((host, port), handler_class)
+    except OSError as e:
+        if e.errno == 48:
+            print(f"Error: Port {port} is already in use. Specify a different port using --port <number>.", file=sys.stderr)
+            sys.exit(1)
+        raise
+    url = f"http://{host}:{port}"
+    print(f"Photo Curation Studio running at {url}")
     if manager.active_folder:
         print(f"Active library: {manager.active_folder}")
     else:
         print("No active library set. Open any folder from the web UI.")
+    if open_browser:
+        import webbrowser
+        webbrowser.open(url)
     server.serve_forever()

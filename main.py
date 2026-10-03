@@ -2,14 +2,21 @@
 """
 main.py - Entry point for Photo Curation Studio.
 Run with any folder on your machine:
-    python3 main.py /path/to/photos
-    python3 main.py ~/Pictures --port 8766
-    python3 main.py --scan /path/to/photos
+    photo-studio                      # curates current directory
+    photo-studio /path/to/photos
+    photo-studio ~/Pictures --port 8766
+    photo-studio --scan
 """
 
 import sys
 import argparse
 from pathlib import Path
+
+# Ensure repository root is on sys.path even when executed via symlink
+REPO_DIR = Path(__file__).resolve().parent
+if str(REPO_DIR) not in sys.path:
+    sys.path.insert(0, str(REPO_DIR))
+
 from studio.server import run_server
 
 
@@ -20,8 +27,8 @@ def main():
     parser.add_argument(
         "folder",
         nargs="?",
-        default=None,
-        help="Path to photo/media folder on your computer to curate."
+        default=".",
+        help="Path to photo/media folder to curate (default: current directory)."
     )
     parser.add_argument(
         "--port",
@@ -34,17 +41,23 @@ def main():
         action="store_true",
         help="Force a clean rescan and re-extract folder hierarchy and EXIF."
     )
+    parser.add_argument(
+        "--open",
+        action="store_true",
+        help="Open the web studio interface in your default browser."
+    )
 
     args = parser.parse_args()
 
-    target_folder = None
-    if args.folder:
-        target_folder = str(Path(args.folder).expanduser().resolve())
-        if not Path(target_folder).exists():
-            print(f"Error: Directory '{target_folder}' does not exist.", file=sys.stderr)
-            sys.exit(1)
+    target_folder = str(Path(args.folder).expanduser().resolve())
+    if not Path(target_folder).exists():
+        print(f"Error: Directory '{target_folder}' does not exist.", file=sys.stderr)
+        sys.exit(1)
+    if not Path(target_folder).is_dir():
+        print(f"Error: Path '{target_folder}' is not a directory.", file=sys.stderr)
+        sys.exit(1)
 
-    run_server(port=args.port, initial_folder=target_folder, force_rescan=args.scan)
+    run_server(port=args.port, initial_folder=target_folder, force_rescan=args.scan, open_browser=args.open)
 
 
 if __name__ == "__main__":
