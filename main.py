@@ -15,7 +15,7 @@ from studio.server import run_server
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Photo Curation Studio - Two-Tier Universal Media Curation and Library Manager"
+        description="Photo Curation Studio - Universal Media Curation and Library Manager"
     )
     parser.add_argument(
         "folder",
@@ -44,7 +44,7 @@ def main():
             print(f"Error: Directory '{target_folder}' does not exist.", file=sys.stderr)
             sys.exit(1)
 
-    run_server(port=args.port, initial_folder=target_folder)
+    run_server(port=args.port, initial_folder=target_folder, force_rescan=args.scan)
 
 
 if __name__ == "__main__":
